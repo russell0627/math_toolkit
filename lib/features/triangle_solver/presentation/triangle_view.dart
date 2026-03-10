@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../settings/controller/settings_ctrl.dart';
 import '../controller/triangle_solver_ctrl.dart';
 import '../model/triangle_model.dart';
 
@@ -93,7 +92,6 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
   Widget build(BuildContext context) {
     final state = ref.watch(triangleSolverCtrlProvider);
     final ctrl = ref.read(triangleSolverCtrlProvider.notifier);
-    final settings = ref.watch(settingsCtrlProvider);
     final styles = context.textStyles;
 
     _syncControllers(state);
@@ -109,7 +107,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
         ),
         Column(
           children: [
-            _buildProtocolSelector(state, ctrl, styles, settings),
+            _buildProtocolSelector(state, ctrl, styles),
             _buildAlignmentStatus(state, styles),
             Expanded(
               child: SingleChildScrollView(
@@ -117,7 +115,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
                 child: Column(
                   children: [
                     _buildVertexUnit(
-                      settings.useBureauNaming ? "VERTEX ALPHA (A)" : "VERTEX A",
+                      "VERTEX ALPHA (A)",
                       _controllerA,
                       _extAController,
                       _focusA,
@@ -126,11 +124,10 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
                       ctrl.updateExtA,
                       state.isUserA,
                       state.isUserExtA,
-                      settings,
                     ),
                     const SizedBox(height: 24),
                     _buildVertexUnit(
-                      settings.useBureauNaming ? "VERTEX BETA (B)" : "VERTEX B",
+                      "VERTEX BETA (B)",
                       _controllerB,
                       _extBController,
                       _focusB,
@@ -139,11 +136,10 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
                       ctrl.updateExtB,
                       state.isUserB,
                       state.isUserExtB,
-                      settings,
                     ),
                     const SizedBox(height: 24),
                     _buildVertexUnit(
-                      settings.useBureauNaming ? "VERTEX GAMMA (C)" : "VERTEX C",
+                      "VERTEX GAMMA (C)",
                       _controllerC,
                       _extCController,
                       _focusC,
@@ -152,11 +148,10 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
                       ctrl.updateExtC,
                       state.isUserC,
                       state.isUserExtC,
-                      settings,
                     ),
                     if (state.angleA != null && state.angleB != null && state.angleC != null) ...[
                       const SizedBox(height: 24),
-                      _buildEstimationSummary(state, settings),
+                      _buildEstimationSummary(state),
                     ],
                   ],
                 ),
@@ -168,7 +163,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
     );
   }
 
-  Widget _buildProtocolSelector(TriangleState state, TriangleSolverCtrl ctrl, dynamic styles, SettingsState settings) {
+  Widget _buildProtocolSelector(TriangleState state, TriangleSolverCtrl ctrl, dynamic styles) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -178,9 +173,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
       child: Row(
         children: [
           Text(
-            widget.isCompact
-                ? (settings.useBureauNaming ? "P:" : "T:")
-                : (settings.useBureauNaming ? "ALIGNMENT PROTOCOL:" : "TRIANGLE TYPE:"),
+            widget.isCompact ? "P:" : "ALIGNMENT PROTOCOL:",
             style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 9),
           ),
           const SizedBox(width: 12),
@@ -256,7 +249,6 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
     Function(double?) onExtChanged,
     bool isUserInt,
     bool isUserExt,
-    SettingsState settings,
   ) {
     return Container(
       padding: EdgeInsets.all(widget.isCompact ? 16 : 20),
@@ -276,26 +268,9 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
           Row(
             children: [
               Expanded(
-                child: _buildAngleField(
-                  settings.useBureauNaming ? "INT" : "INNER",
-                  intCtrl,
-                  intFocus,
-                  onIntChanged,
-                  Colors.greenAccent,
-                  isUserInt,
-                ),
-              ),
+                  child: _buildAngleField("INT", intCtrl, intFocus, onIntChanged, Colors.greenAccent, isUserInt)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildAngleField(
-                  settings.useBureauNaming ? "EXT" : "OUTER",
-                  extCtrl,
-                  extFocus,
-                  onExtChanged,
-                  Colors.blueAccent,
-                  isUserExt,
-                ),
-              ),
+              Expanded(child: _buildAngleField("EXT", extCtrl, extFocus, onExtChanged, Colors.blueAccent, isUserExt)),
             ],
           ),
         ],
@@ -333,7 +308,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
     );
   }
 
-  Widget _buildEstimationSummary(TriangleState state, SettingsState settings) {
+  Widget _buildEstimationSummary(TriangleState state) {
     // Simple summary for any irrational-looking angles
     return Container(
       padding: const EdgeInsets.all(16),
@@ -344,12 +319,12 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
       child: Column(
         children: [
           Text(
-            settings.useBureauNaming ? "GEOMETRIC VALUATION RANGE" : "TRIANGLE CALCULATION SUMMARY",
+            "GEOMETRIC VALUATION RANGE",
             style: GoogleFonts.shareTechMono(color: Colors.greenAccent.withValues(alpha: 0.5), fontSize: 8),
           ),
           const SizedBox(height: 8),
           Text(
-            settings.useBureauNaming ? "COMPUTATION WITHIN RATIONAL PARAMETERS" : "ANGLES CALCULATED CORRECTLY",
+            "COMPUTATION WITHIN RATIONAL PARAMETERS",
             style: GoogleFonts.shareTechMono(color: Colors.greenAccent, fontSize: 10),
           ),
         ],
@@ -373,14 +348,15 @@ class TrianglePainter extends CustomPainter {
 
     final double radA = state.angleA! * (math.pi / 180);
     final double radB = state.angleB! * (math.pi / 180);
+    final double radC = state.angleC! * (math.pi / 180);
 
     final double sideLength = math.min(size.width, size.height) * (isCompact ? 0.22 : 0.4);
     final double c = sideLength;
-    final double bArr = (c * math.sin(radB)) / math.sin(math.pi - radA - radB);
+    final double b = (c * math.sin(radB)) / math.sin(radC);
 
     final pA = const Offset(0, 0);
     final pB = Offset(c, 0);
-    final pC = Offset(bArr * math.cos(radA), -bArr * math.sin(radA));
+    final pC = Offset(b * math.cos(radA), -b * math.sin(radA));
 
     final boundsAB = Rect.fromPoints(pA, pB);
     final bounds = Rect.fromLTRB(

@@ -4,46 +4,88 @@ part 'workbench_model.mapper.dart';
 
 @MappableEnum()
 enum MainModule {
-  algebra('Algebraic Auditor (ALG-01)', 'Algebraic Auditor'),
-  triangle('Triangle Solver (TRI-01)', 'Triangle Solver'),
-  pythagorean('Hypotenuse Verification (PYT-02)', 'Pythagorean Theorem'),
-  gridPythagorean('Grid Audit (GRD-04)', 'Grid Coordinate Calculation')
-  ;
+  algebra(
+    thematicTitle: 'ALGEBRAIC AUDITOR (ALG-01)',
+    normalTitle: 'ALGEBRA SOLVER',
+  ),
+  triangle(
+    thematicTitle: 'TRIANGLE SOLVER (TRI-01)',
+    normalTitle: 'TRIANGLE SOLVER',
+  ),
+  pythagorean(
+    thematicTitle: 'HYPOTENUSE VERIFICATION (PYT-02)',
+    normalTitle: 'PYTHAGOREAN THEOREM',
+  ),
+  gridPythagorean(
+    thematicTitle: 'GRID AUDIT (GRD-04)',
+    normalTitle: 'COORDINATE GEOMETRY',
+  );
 
-  final String bureauTitle;
+  final String thematicTitle;
   final String normalTitle;
-  const MainModule(this.bureauTitle, this.normalTitle);
+  const MainModule({required this.thematicTitle, required this.normalTitle});
 
-  String title({required bool useBureau}) => useBureau ? bureauTitle.toUpperCase() : normalTitle.toUpperCase();
+  String getTitle(bool isThematic) => isThematic ? thematicTitle : normalTitle;
 }
 
 @MappableEnum()
 enum UtilityModule {
-  radical('Radical Reduction (RAD-03)', 'Radical Simplifier'),
-  fraction('Fraction Simplifier', 'Fraction Simplifier'),
-  calculator('Calculator', 'Calculator'),
-  reflection('Reflection Mapper', 'Coordinate Reflection'),
-  rotation('Rotation Mapper', 'Coordinate Rotation'),
-  transformationSequence('Transformation Seq', 'Transformation Sequence'),
-  none('None', 'None')
-  ;
+  radical(
+    thematicTitle: 'RADICAL REDUCTION (RAD-03)',
+    normalTitle: 'RADICAL SIMPLIFIER',
+  ),
+  fraction(
+    thematicTitle: 'FRACTION SIMPLIFIER',
+    normalTitle: 'FRACTION SIMPLIFIER',
+  ),
+  calculator(
+    thematicTitle: 'CALCULATOR',
+    normalTitle: 'CALCULATOR',
+  ),
+  reflection(
+    thematicTitle: 'REFLECTION MAPPER',
+    normalTitle: 'REFLECTION TOOL',
+  ),
+  rotation(
+    thematicTitle: 'ROTATION MAPPER',
+    normalTitle: 'ROTATION TOOL',
+  ),
+  transformationSequence(
+    thematicTitle: 'TRANSFORMATION SEQ',
+    normalTitle: 'TRANSFORMATION SEQUENCE',
+  ),
+  none(
+    thematicTitle: 'NONE',
+    normalTitle: 'NONE',
+  );
 
-  final String bureauTitle;
+  final String thematicTitle;
   final String normalTitle;
-  const UtilityModule(this.bureauTitle, this.normalTitle);
+  const UtilityModule({required this.thematicTitle, required this.normalTitle});
 
-  String title({required bool useBureau}) => useBureau ? bureauTitle.toUpperCase() : normalTitle.toUpperCase();
+  String getTitle(bool isThematic) => isThematic ? thematicTitle : normalTitle;
 }
 
 @MappableEnum()
 enum SubUtilityModule {
-  notepad('NOTEPAD'),
-  calculator('CALCULATOR'),
-  none('NONE')
-  ;
+  notepad(
+    thematicTitle: 'NOTEPAD',
+    normalTitle: 'NOTEPAD',
+  ),
+  calculator(
+    thematicTitle: 'CALCULATOR',
+    normalTitle: 'CALCULATOR',
+  ),
+  none(
+    thematicTitle: 'NONE',
+    normalTitle: 'NONE',
+  );
 
-  final String title;
-  const SubUtilityModule(this.title);
+  final String thematicTitle;
+  final String normalTitle;
+  const SubUtilityModule({required this.thematicTitle, required this.normalTitle});
+
+  String getTitle(bool isThematic) => isThematic ? thematicTitle : normalTitle;
 }
 
 @MappableClass()

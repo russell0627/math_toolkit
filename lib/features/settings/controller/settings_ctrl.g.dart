@@ -41,7 +41,7 @@ final class SettingsCtrlProvider
   }
 }
 
-String _$settingsCtrlHash() => r'29c355dc0b2b922610597f8b3c672bf996c2475f';
+String _$settingsCtrlHash() => r'b78a6c63bbdd6f7acc427488af3d645bb3e28043';
 
 abstract class _$SettingsCtrl extends $Notifier<SettingsState> {
   SettingsState build();

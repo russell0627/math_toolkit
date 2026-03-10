@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/math_utils.dart';
-import '../../settings/controller/settings_ctrl.dart';
 import '../controller/grid_ctrl.dart';
 import '../model/grid_model.dart';
 
@@ -78,7 +77,6 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
   Widget build(BuildContext context) {
     final state = ref.watch(gridPythagoreanCtrlProvider);
     final ctrl = ref.read(gridPythagoreanCtrlProvider.notifier);
-    final settings = ref.watch(settingsCtrlProvider);
 
     _syncControllers(state);
 
@@ -95,7 +93,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
         ),
         Column(
           children: [
-            _buildStatusBar(state, settings),
+            _buildStatusBar(state),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -104,19 +102,19 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildPointAlpha(state, ctrl, settings),
+                          child: _buildPointAlpha(state, ctrl),
                         ),
                         const SizedBox(width: 24),
                         Expanded(
-                          child: _buildPointBeta(state, ctrl, settings),
+                          child: _buildPointBeta(state, ctrl),
                         ),
                       ],
                     ),
                     const SizedBox(height: 32),
                     if (state.isComplete) ...[
-                      _buildDistanceFormula(state, settings),
+                      _buildDistanceFormula(state),
                       const SizedBox(height: 32),
-                      _buildResultsGrid(state, settings),
+                      _buildResultsGrid(state),
                     ] else ...[
                       _buildEmptyState(),
                     ],
@@ -130,7 +128,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     );
   }
 
-  Widget _buildStatusBar(GridPythagoreanState state, SettingsState settings) {
+  Widget _buildStatusBar(GridPythagoreanState state) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 24),
@@ -143,9 +141,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
               const Icon(Icons.grid_4x4, size: 14, color: Colors.blueAccent),
               const SizedBox(width: 12),
               Text(
-                settings.useBureauNaming 
-                  ? (state.isComplete ? "COORDINATES MAPPED" : "AWAITING COORD VECTORS...")
-                  : (state.isComplete ? "GRID MAPPED" : "INPUT COORDINATES"),
+                state.isComplete ? "COORDINATES MAPPED" : "AWAITING COORD VECTORS...",
                 style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 10),
               ),
             ],
@@ -166,7 +162,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     );
   }
 
-  Widget _buildDistanceFormula(GridPythagoreanState state, SettingsState settings) {
+  Widget _buildDistanceFormula(GridPythagoreanState state) {
     final x1 = state.x1!;
     final y1 = state.y1!;
     final x2 = state.x2!;
@@ -180,7 +176,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     String fmt(double? v) => v == null ? "?" : v.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
 
     return _buildAuditBox(
-      settings.useBureauNaming ? "DISTANCE FORMULA DERIVATION" : "DISTANCE FORMULA STEPS",
+      "DISTANCE FORMULA DERIVATION",
       [
         _formulaStep("1. FORMULA", "d = √((x₂-x₁)² + (y₂-y₁)²)"),
         const SizedBox(height: 12),
@@ -212,9 +208,9 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     );
   }
 
-  Widget _buildPointAlpha(GridPythagoreanState state, GridPythagoreanCtrl ctrl, SettingsState settings) {
+  Widget _buildPointAlpha(GridPythagoreanState state, GridPythagoreanCtrl ctrl) {
     return _buildAuditBox(
-      settings.useBureauNaming ? "POINT ALPHA (P1)" : "POINT 1",
+      "POINT ALPHA (P1)",
       [
         _buildCoordInput("X1", _x1Ctrl, _x1Focus, ctrl.updateX1),
         const SizedBox(height: 12),
@@ -224,9 +220,9 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     );
   }
 
-  Widget _buildPointBeta(GridPythagoreanState state, GridPythagoreanCtrl ctrl, SettingsState settings) {
+  Widget _buildPointBeta(GridPythagoreanState state, GridPythagoreanCtrl ctrl) {
     return _buildAuditBox(
-      settings.useBureauNaming ? "POINT BETA (P2)" : "POINT 2",
+      "POINT BETA (P2)",
       [
         _buildCoordInput("X2", _x2Ctrl, _x2Focus, ctrl.updateX2),
         const SizedBox(height: 12),
@@ -291,7 +287,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
     );
   }
 
-  Widget _buildResultsGrid(GridPythagoreanState state, SettingsState settings) {
+  Widget _buildResultsGrid(GridPythagoreanState state) {
     final dx = state.dx!;
     final dy = state.dy!;
     final distSq = state.distanceValue!;
@@ -301,13 +297,9 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
       children: [
         Row(
           children: [
-            Expanded(
-                child: _resultBox(
-                    settings.useBureauNaming ? "DELTA X (LEG A)" : "SIDE A (ΔX)", dx.toStringAsFixed(2), Colors.greenAccent)),
+            Expanded(child: _resultBox("DELTA X (LEG A)", dx.toStringAsFixed(2), Colors.greenAccent)),
             const SizedBox(width: 16),
-            Expanded(
-                child: _resultBox(
-                    settings.useBureauNaming ? "DELTA Y (LEG B)" : "SIDE B (ΔY)", dy.toStringAsFixed(2), Colors.cyanAccent)),
+            Expanded(child: _resultBox("DELTA Y (LEG B)", dy.toStringAsFixed(2), Colors.cyanAccent)),
           ],
         ),
         const SizedBox(height: 24),
@@ -322,7 +314,7 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
           child: Column(
             children: [
               Text(
-                settings.useBureauNaming ? "LINEAR DISTANCE (HYPOTENUSE)" : "HYPOTENUSE (DISTANCE)",
+                "LINEAR DISTANCE (HYPOTENUSE)",
                 style: GoogleFonts.shareTechMono(color: Colors.blueAccent.withValues(alpha: 0.6), fontSize: 10),
               ),
               const SizedBox(height: 12),

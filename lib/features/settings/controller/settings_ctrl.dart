@@ -10,7 +10,7 @@ class SettingsState {
   final bool isRadicalMode;
   final bool isDrawerOnRight;
   final bool isSplitEntryMode;
-  final bool useBureauNaming;
+  final bool isThematicNames;
 
   const SettingsState({
     this.isRationalMode = false,
@@ -19,7 +19,7 @@ class SettingsState {
     this.isRadicalMode = true,
     this.isDrawerOnRight = false,
     this.isSplitEntryMode = false,
-    this.useBureauNaming = false,
+    this.isThematicNames = false,
   });
 
   SettingsState copyWith({
@@ -29,7 +29,7 @@ class SettingsState {
     bool? isRadicalMode,
     bool? isDrawerOnRight,
     bool? isSplitEntryMode,
-    bool? useBureauNaming,
+    bool? isThematicNames,
   }) {
     return SettingsState(
       isRationalMode: isRationalMode ?? this.isRationalMode,
@@ -38,7 +38,7 @@ class SettingsState {
       isRadicalMode: isRadicalMode ?? this.isRadicalMode,
       isDrawerOnRight: isDrawerOnRight ?? this.isDrawerOnRight,
       isSplitEntryMode: isSplitEntryMode ?? this.isSplitEntryMode,
-      useBureauNaming: useBureauNaming ?? this.useBureauNaming,
+      isThematicNames: isThematicNames ?? this.isThematicNames,
     );
   }
 }
@@ -56,7 +56,7 @@ class SettingsCtrl extends _$SettingsCtrl {
       isRadicalMode: persistence.getBool('isRadicalMode', defaultValue: true),
       isDrawerOnRight: persistence.getBool('isDrawerOnRight', defaultValue: false),
       isSplitEntryMode: persistence.getBool('isSplitEntryMode', defaultValue: false),
-      useBureauNaming: persistence.getBool('useBureauNaming', defaultValue: false),
+      isThematicNames: persistence.getBool('isThematicNames', defaultValue: false),
     );
   }
 
@@ -96,9 +96,9 @@ class SettingsCtrl extends _$SettingsCtrl {
     ref.read(persistenceServiceProvider.notifier).setBool('isSplitEntryMode', newValue);
   }
 
-  void toggleBureauNaming() {
-    final newValue = !state.useBureauNaming;
-    state = state.copyWith(useBureauNaming: newValue);
-    ref.read(persistenceServiceProvider.notifier).setBool('useBureauNaming', newValue);
+  void toggleThematicNames() {
+    final newValue = !state.isThematicNames;
+    state = state.copyWith(isThematicNames: newValue);
+    ref.read(persistenceServiceProvider.notifier).setBool('isThematicNames', newValue);
   }
 }

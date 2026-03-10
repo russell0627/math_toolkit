@@ -61,6 +61,13 @@ class BureauSettingsDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _buildProtocolToggle(
+              "IMMERSION MODE",
+              "SYSTEM-LORE",
+              settings.isThematicNames,
+              settingsCtrl.toggleThematicNames,
+            ),
+            const SizedBox(height: 12),
+            _buildProtocolToggle(
               "RADICAL OUTPUT",
               "SYSTEM-SURD",
               settings.isRadicalMode,

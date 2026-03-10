@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../utils/math_utils.dart';
-import '../../settings/controller/settings_ctrl.dart';
 import '../controller/pythagorean_ctrl.dart';
 import '../model/pythagorean_model.dart';
 
@@ -91,7 +90,6 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
   Widget build(BuildContext context) {
     final state = ref.watch(pythagoreanCtrlProvider);
     final ctrl = ref.read(pythagoreanCtrlProvider.notifier);
-    final settings = ref.watch(settingsCtrlProvider);
     final styles = context.textStyles;
 
     _syncControllers(state);
@@ -107,14 +105,14 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
         ),
         Column(
           children: [
-            _buildAlignmentStatus(state, styles, settings),
+            _buildAlignmentStatus(state, styles),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(widget.isCompact ? 16 : 24),
                 child: Column(
                   children: [
                     _buildSideUnit(
-                      settings.useBureauNaming ? "REQUISITION: LEG ALPHA (A)" : "LEG A",
+                      "REQUISITION: LEG ALPHA (A)",
                       _controllerA,
                       _focusNodeA,
                       ctrl.updateSideA,
@@ -123,7 +121,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
                     ),
                     const SizedBox(height: 24),
                     _buildSideUnit(
-                      settings.useBureauNaming ? "REQUISITION: LEG BETA (B)" : "LEG B",
+                      "REQUISITION: LEG BETA (B)",
                       _controllerB,
                       _focusNodeB,
                       ctrl.updateSideB,
@@ -132,7 +130,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
                     ),
                     const SizedBox(height: 24),
                     _buildSideUnit(
-                      settings.useBureauNaming ? "VERIFICATION: HYPOTENUSE (C)" : "HYPOTENUSE C",
+                      "VERIFICATION: HYPOTENUSE (C)",
                       _controllerC,
                       _focusNodeC,
                       ctrl.updateSideC,
@@ -143,7 +141,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
                     _buildFormulaDisplay(state),
                     if (state.estimationRange.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      _buildEstimationDisplay(state, settings),
+                      _buildEstimationDisplay(state),
                     ],
                   ],
                 ),
@@ -155,15 +153,9 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
     );
   }
 
-  Widget _buildAlignmentStatus(PythagoreanState state, dynamic styles, SettingsState settings) {
+  Widget _buildAlignmentStatus(PythagoreanState state, dynamic styles) {
     final isValid = state.isValidAlignment;
     final isError = !isValid && state.isFull;
-
-    String statusText() {
-      if (isError) return settings.useBureauNaming ? "HYPOTENUSE MISMATCH" : "INPUT MISMATCH";
-      if (state.isFull) return settings.useBureauNaming ? "ALIGNMENT SECURE" : "TRIANGLE VERIFIED";
-      return settings.useBureauNaming ? "AWAITING VECTORS..." : "AWAITING INPUT...";
-    }
 
     return Container(
       width: double.infinity,
@@ -181,7 +173,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
               ),
               const SizedBox(width: 12),
               Text(
-                statusText(),
+                isError ? "HYPOTENUSE MISMATCH" : (state.isFull ? "ALIGNMENT SECURE" : "AWAITING VECTORS..."),
                 style: GoogleFonts.shareTechMono(
                   color: isError ? Colors.redAccent : Colors.blueAccent,
                   fontSize: 10,
@@ -266,7 +258,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
     );
   }
 
-  Widget _buildEstimationDisplay(PythagoreanState state, SettingsState settings) {
+  Widget _buildEstimationDisplay(PythagoreanState state) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -277,7 +269,7 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
       child: Column(
         children: [
           Text(
-            settings.useBureauNaming ? "INTERNAL VALUATION RANGE" : "ESTIMATION RANGE",
+            "INTERNAL VALUATION RANGE",
             style: GoogleFonts.shareTechMono(color: Colors.blueAccent.withValues(alpha: 0.5), fontSize: 9),
           ),
           const SizedBox(height: 8),

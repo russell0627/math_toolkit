@@ -10,6 +10,7 @@ import 'features/budget_audit/presentation/budgetary_audit_screen.dart';
 import 'features/calculator/presentation/calculator_screen.dart';
 import 'features/cipher/presentation/cipher_screen.dart';
 import 'features/elements/presentation/elemental_registry_screen.dart';
+import 'features/fraction_simplifier/presentation/fraction_simplifier_view.dart';
 import 'features/synchronizer/presentation/synchronizer_screen.dart';
 import 'features/app/presentation/pi_stream_screen.dart';
 import 'features/app/presentation/prime_sieve_screen.dart';
@@ -70,7 +71,7 @@ GoRouter goRouter(Ref ref) {
           GoRoute(
             name: AppRoute.fractionSimplifier.name,
             path: AppRoute.fractionSimplifier.path,
-            builder: (context, state) => const FractionSimplifierScreen(),
+            builder: (context, state) => const FractionSimplifierView(),
           ),
           GoRoute(
             name: AppRoute.budgetAudit.name,

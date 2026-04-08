@@ -22,7 +22,7 @@ class _NotepadViewState extends ConsumerState<NotepadView> {
   @override
   Widget build(BuildContext context) {
     final content = ref.watch(notepadCtrlProvider);
-    
+
     if (_controller.text != content) {
       _controller.text = content;
     }

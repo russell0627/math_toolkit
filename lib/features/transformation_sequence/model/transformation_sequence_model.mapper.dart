@@ -353,12 +353,20 @@ class TransformationSequenceStateMapper
       v.selectedStepIndex;
   static const Field<TransformationSequenceState, int> _f$selectedStepIndex =
       Field('selectedStepIndex', _$selectedStepIndex, opt: true);
+  static bool _$isQuickShape(TransformationSequenceState v) => v.isQuickShape;
+  static const Field<TransformationSequenceState, bool> _f$isQuickShape = Field(
+    'isQuickShape',
+    _$isQuickShape,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<TransformationSequenceState> fields = const {
     #steps: _f$steps,
     #points: _f$points,
     #selectedStepIndex: _f$selectedStepIndex,
+    #isQuickShape: _f$isQuickShape,
   };
 
   static TransformationSequenceState _instantiate(DecodingData data) {
@@ -366,6 +374,7 @@ class TransformationSequenceStateMapper
       steps: data.dec(_f$steps),
       points: data.dec(_f$points),
       selectedStepIndex: data.dec(_f$selectedStepIndex),
+      isQuickShape: data.dec(_f$isQuickShape),
     );
   }
 
@@ -454,6 +463,7 @@ abstract class TransformationSequenceStateCopyWith<
     List<TransformationStep>? steps,
     List<Offset>? points,
     int? selectedStepIndex,
+    bool? isQuickShape,
   });
   TransformationSequenceStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -500,11 +510,13 @@ class _TransformationSequenceStateCopyWithImpl<$R, $Out>
     List<TransformationStep>? steps,
     List<Offset>? points,
     Object? selectedStepIndex = $none,
+    bool? isQuickShape,
   }) => $apply(
     FieldCopyWithData({
       if (steps != null) #steps: steps,
       if (points != null) #points: points,
       if (selectedStepIndex != $none) #selectedStepIndex: selectedStepIndex,
+      if (isQuickShape != null) #isQuickShape: isQuickShape,
     }),
   );
   @override
@@ -516,6 +528,7 @@ class _TransformationSequenceStateCopyWithImpl<$R, $Out>
           #selectedStepIndex,
           or: $value.selectedStepIndex,
         ),
+        isQuickShape: data.get(#isQuickShape, or: $value.isQuickShape),
       );
 
   @override

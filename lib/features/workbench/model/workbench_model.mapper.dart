@@ -35,6 +35,10 @@ class MainModuleMapper extends EnumMapper<MainModule> {
         return MainModule.pythagorean;
       case r'gridPythagorean':
         return MainModule.gridPythagorean;
+      case r'transformationSequence':
+        return MainModule.transformationSequence;
+      case r'slopeAudit':
+        return MainModule.slopeAudit;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -51,6 +55,10 @@ class MainModuleMapper extends EnumMapper<MainModule> {
         return r'pythagorean';
       case MainModule.gridPythagorean:
         return r'gridPythagorean';
+      case MainModule.transformationSequence:
+        return r'transformationSequence';
+      case MainModule.slopeAudit:
+        return r'slopeAudit';
     }
   }
 }
@@ -91,8 +99,6 @@ class UtilityModuleMapper extends EnumMapper<UtilityModule> {
         return UtilityModule.reflection;
       case r'rotation':
         return UtilityModule.rotation;
-      case r'transformationSequence':
-        return UtilityModule.transformationSequence;
       case r'none':
         return UtilityModule.none;
       default:
@@ -113,8 +119,6 @@ class UtilityModuleMapper extends EnumMapper<UtilityModule> {
         return r'reflection';
       case UtilityModule.rotation:
         return r'rotation';
-      case UtilityModule.transformationSequence:
-        return r'transformationSequence';
       case UtilityModule.none:
         return r'none';
     }

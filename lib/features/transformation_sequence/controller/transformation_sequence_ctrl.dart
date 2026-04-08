@@ -12,19 +12,19 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
   }
 
   void setPoints(List<Offset> newPoints) {
-    state = state.copyWith(points: newPoints);
+    state = state.copyWith(points: newPoints, isQuickShape: false);
     _recalculateResults();
   }
 
   void addPoint(Offset point) {
-    state = state.copyWith(points: [...state.points, point]);
+    state = state.copyWith(points: [...state.points, point], isQuickShape: false);
     _recalculateResults();
   }
 
   void removePoint(int index) {
     if (index < 0 || index >= state.points.length) return;
     final newPoints = List<Offset>.from(state.points)..removeAt(index);
-    state = state.copyWith(points: newPoints);
+    state = state.copyWith(points: newPoints, isQuickShape: false);
     _recalculateResults();
   }
 
@@ -32,12 +32,36 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
     if (index < 0 || index >= state.points.length) return;
     final newPoints = List<Offset>.from(state.points);
     newPoints[index] = point;
-    state = state.copyWith(points: newPoints);
+    state = state.copyWith(points: newPoints, isQuickShape: false);
     _recalculateResults();
   }
 
   void selectStep(int? index) {
     state = state.copyWith(selectedStepIndex: index);
+  }
+
+  void generateShape(double width, double height, {bool isCentered = true}) {
+    List<Offset> newPoints;
+    if (isCentered) {
+      final w2 = width / 2;
+      final h2 = height / 2;
+      newPoints = [
+        Offset(-w2, -h2),
+        Offset(w2, -h2),
+        Offset(w2, h2),
+        Offset(-w2, h2),
+      ];
+    } else {
+      newPoints = [
+        const Offset(0, 0),
+        Offset(width, 0),
+        Offset(width, height),
+        Offset(0, height),
+      ];
+    }
+    
+    state = state.copyWith(points: newPoints, isQuickShape: true);
+    _recalculateResults();
   }
 
   void addTransformation(

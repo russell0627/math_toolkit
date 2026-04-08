@@ -65,4 +65,39 @@ class MathUtils {
       return double.tryParse(input);
     }
   }
+
+  /// Converts a double to its simplest fraction form as a string "n/d".
+  static String toFraction(double value, {double tolerance = 1.0e-6}) {
+    if (value.isInfinite) return "∞";
+    if (value.isNaN) return "NaN";
+    if (value == 0) return "0";
+
+    final sign = value < 0 ? "-" : "";
+    final absVal = value.abs();
+
+    if ((absVal - absVal.round()).abs() < tolerance) {
+      return "$sign${absVal.round()}";
+    }
+
+    double x = absVal;
+    int a = x.floor();
+    double h1 = 1, h2 = 0;
+    double k1 = 0, k2 = 1;
+    double h = a.toDouble(), k = 1.0;
+
+    // Continued fraction algorithm
+    for (int i = 0; i < 10; i++) {
+       if ((absVal - h / k).abs() < tolerance) break;
+      if (x - a < tolerance) break;
+      x = 1.0 / (x - a);
+      a = x.floor();
+      h2 = h1; h1 = h;
+      k2 = k1; k1 = k;
+      h = a * h1 + h2;
+      k = a * k1 + k2;
+      if (k > 10000) break; // Limit denominator size
+    }
+
+    return "$sign${h.toInt()}/${k.toInt()}";
+  }
 }

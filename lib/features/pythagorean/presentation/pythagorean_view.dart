@@ -94,60 +94,66 @@ class _PythagoreanViewState extends ConsumerState<PythagoreanView> {
 
     _syncControllers(state);
 
-    return Stack(
+    return Column(
       children: [
-        Positioned.fill(
-          child: IgnorePointer(
-            child: CustomPaint(
-              painter: PythagoreanPainter(state),
+        _buildAlignmentStatus(state, styles),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(widget.isCompact ? 16 : 24),
+            child: Column(
+              children: [
+                _buildSideUnit(
+                  "REQUISITION: LEG ALPHA (A)",
+                  _controllerA,
+                  _focusNodeA,
+                  ctrl.updateSideA,
+                  state.isUserA,
+                  Colors.greenAccent,
+                ),
+                const SizedBox(height: 24),
+                _buildSideUnit(
+                  "REQUISITION: LEG BETA (B)",
+                  _controllerB,
+                  _focusNodeB,
+                  ctrl.updateSideB,
+                  state.isUserB,
+                  Colors.greenAccent,
+                ),
+                const SizedBox(height: 24),
+                _buildSideUnit(
+                  "VERIFICATION: HYPOTENUSE (C)",
+                  _controllerC,
+                  _focusNodeC,
+                  ctrl.updateSideC,
+                  state.isUserC,
+                  Colors.blueAccent,
+                ),
+                SizedBox(height: widget.isCompact ? 24 : 40),
+                _buildFormulaDisplay(state),
+                if (state.estimationRange.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildEstimationDisplay(state),
+                ],
+              ],
             ),
           ),
         ),
-        Column(
-          children: [
-            _buildAlignmentStatus(state, styles),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(widget.isCompact ? 16 : 24),
-                child: Column(
-                  children: [
-                    _buildSideUnit(
-                      "REQUISITION: LEG ALPHA (A)",
-                      _controllerA,
-                      _focusNodeA,
-                      ctrl.updateSideA,
-                      state.isUserA,
-                      Colors.greenAccent,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSideUnit(
-                      "REQUISITION: LEG BETA (B)",
-                      _controllerB,
-                      _focusNodeB,
-                      ctrl.updateSideB,
-                      state.isUserB,
-                      Colors.greenAccent,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSideUnit(
-                      "VERIFICATION: HYPOTENUSE (C)",
-                      _controllerC,
-                      _focusNodeC,
-                      ctrl.updateSideC,
-                      state.isUserC,
-                      Colors.blueAccent,
-                    ),
-                    SizedBox(height: widget.isCompact ? 24 : 40),
-                    _buildFormulaDisplay(state),
-                    if (state.estimationRange.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      _buildEstimationDisplay(state),
-                    ],
-                  ],
-                ),
-              ),
+        // Visualization Area at the bottom
+        Container(
+          height: widget.isCompact ? 120 : 200,
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.blueAccent.withValues(alpha: 0.02)],
             ),
-          ],
+          ),
+          child: CustomPaint(
+            painter: PythagoreanPainter(state),
+          ),
         ),
       ],
     );
@@ -291,24 +297,61 @@ class PythagoreanPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (state.sideA == null || state.sideB == null) return;
     final paint = Paint()
-      ..color = Colors.blueAccent.withValues(alpha: 0.15)
-      ..style = PaintingStyle.stroke;
+      ..color = Colors.blueAccent.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    final glowPaint = Paint()
+      ..color = Colors.blueAccent.withValues(alpha: 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+
     final double sideA = state.sideA!;
     final double sideB = state.sideB!;
     final double maxVal = math.max(sideA, sideB);
-    final double scale = (math.min(size.width, size.height) * 0.4) / maxVal;
+    
+    // Scale to fit the bottom area
+    final double scale = (math.min(size.width, size.height) * 0.7) / maxVal;
     final h = sideA * scale;
     final w = sideB * scale;
-    final center = Offset(size.width / 2, size.height / 2 + (size.height > 500 ? 250 : 50));
+    
+    // Center in the provided size
+    final center = Offset(size.width / 2, size.height / 2);
+    
     final pA = Offset(center.dx - w / 2, center.dy + h / 2);
     final pB = Offset(center.dx + w / 2, center.dy + h / 2);
     final pC = Offset(center.dx - w / 2, center.dy - h / 2);
+    
     final path = Path()
       ..moveTo(pA.dx, pA.dy)
       ..lineTo(pB.dx, pB.dy)
       ..lineTo(pC.dx, pC.dy)
       ..close();
+
+    canvas.drawPath(path, glowPaint);
     canvas.drawPath(path, paint);
+
+    // Draw little square for right angle
+    final squareSize = 10.0;
+    final squarePath = Path()
+      ..moveTo(pA.dx + squareSize, pA.dy)
+      ..lineTo(pA.dx + squareSize, pA.dy - squareSize)
+      ..lineTo(pA.dx, pA.dy - squareSize);
+    canvas.drawPath(squarePath, paint);
+
+    // Add labels
+    final spanA = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10), text: "a");
+    final tpA = TextPainter(text: spanA, textDirection: TextDirection.ltr)..layout();
+    tpA.paint(canvas, Offset(pA.dx - 15, center.dy));
+
+    final spanB = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10), text: "b");
+    final tpB = TextPainter(text: spanB, textDirection: TextDirection.ltr)..layout();
+    tpB.paint(canvas, Offset(center.dx, pA.dy + 5));
+
+    final spanC = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 10), text: "c");
+    final tpC = TextPainter(text: spanC, textDirection: TextDirection.ltr)..layout();
+    tpC.paint(canvas, Offset(center.dx + 5, center.dy - 10));
   }
 
   @override

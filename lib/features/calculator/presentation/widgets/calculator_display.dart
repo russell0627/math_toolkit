@@ -37,7 +37,7 @@ class CalculatorDisplay extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                display,
+                expression?.isEmpty ?? true ? 'SYSTEM IDLE' : expression!,
                 style: GoogleFonts.cutiveMono(
                   color: Colors.greenAccent.withValues(alpha: 0.5),
                   fontSize: 14,
@@ -47,10 +47,10 @@ class CalculatorDisplay extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                expression?.isEmpty ?? true ? 'READY' : expression!,
+                (display == '0' || display.isEmpty) && (expression?.isEmpty ?? true) ? 'READY' : display,
                 style: GoogleFonts.cutiveMono(
                   color: Colors.greenAccent,
-                  fontSize: 32, // Slightly smaller than before but main focus
+                  fontSize: 42, // Increased for emphasis
                   fontWeight: FontWeight.bold,
                   shadows: [
                     const Shadow(

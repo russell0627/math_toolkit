@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../app/presentation/widgets/bureau_atmosphere.dart';
 import '../../algebra/presentation/algebra_view.dart';
+import '../../app/presentation/widgets/bureau_atmosphere.dart';
+import '../../grid_pythagorean/presentation/grid_pythagorean_view.dart';
 import '../../pythagorean/presentation/pythagorean_view.dart';
 import '../../radical_simplifier/presentation/radical_view.dart';
-import '../../triangle_solver/presentation/triangle_view.dart';
-import '../../grid_pythagorean/presentation/grid_pythagorean_view.dart';
 import '../../reflection_mapper/presentation/reflection_view.dart';
 import '../../rotation_mapper/presentation/rotation_view.dart';
-import '../../transformation_sequence/presentation/transformation_sequence_view.dart';
 import '../../settings/controller/settings_ctrl.dart';
+import '../../slope_calculator/presentation/slope_view.dart';
+import '../../transformation_sequence/presentation/transformation_sequence_view.dart';
+import '../../triangle_solver/presentation/triangle_view.dart';
 import '../controller/workbench_ctrl.dart';
 import '../model/workbench_model.dart';
 import 'widgets/mini_calculator_view.dart';
@@ -80,11 +81,11 @@ class WorkbenchScreen extends ConsumerWidget {
                     .where((m) => m != UtilityModule.none)
                     .map(
                       (m) => _buildModuleTile(
-                      m.getTitle(settings.isThematicNames),
-                      isSelected: state.activeUtility == m,
-                      onTap: () => ctrl.selectUtility(m),
-                      color: _getUtilityColor(m),
-                    ),
+                        m.getTitle(settings.isThematicNames),
+                        isSelected: state.activeUtility == m,
+                        onTap: () => ctrl.selectUtility(m),
+                        color: _getUtilityColor(m),
+                      ),
                     ),
                 const SizedBox(height: 32),
                 _buildSectionHeader("AUXILIARY SYSTEMS"),
@@ -92,11 +93,11 @@ class WorkbenchScreen extends ConsumerWidget {
                     .where((m) => m != SubUtilityModule.none)
                     .map(
                       (m) => _buildModuleTile(
-                      m.getTitle(settings.isThematicNames),
-                      isSelected: state.activeSubUtility == m,
-                      onTap: () => ctrl.selectSubUtility(m),
-                      color: Colors.cyanAccent,
-                    ),
+                        m.getTitle(settings.isThematicNames),
+                        isSelected: state.activeSubUtility == m,
+                        onTap: () => ctrl.selectSubUtility(m),
+                        color: Colors.cyanAccent,
+                      ),
                     ),
               ],
             ),
@@ -260,6 +261,10 @@ class WorkbenchScreen extends ConsumerWidget {
         return const PythagoreanView();
       case MainModule.gridPythagorean:
         return const GridPythagoreanView();
+      case MainModule.transformationSequence:
+        return const TransformationSequenceView(isCompact: false);
+      case MainModule.slopeAudit:
+        return const SlopeCalculatorView();
     }
   }
 
@@ -277,8 +282,6 @@ class WorkbenchScreen extends ConsumerWidget {
         return const ReflectionView(isCompact: true);
       case UtilityModule.rotation:
         return const RotationView(isCompact: true);
-      case UtilityModule.transformationSequence:
-        return const TransformationSequenceView(isCompact: true);
       case UtilityModule.none:
         return const SizedBox.shrink();
     }
@@ -315,6 +318,10 @@ class WorkbenchScreen extends ConsumerWidget {
         return Colors.blueAccent;
       case MainModule.gridPythagorean:
         return Colors.cyanAccent;
+      case MainModule.transformationSequence:
+        return Colors.blueAccent;
+      case MainModule.slopeAudit:
+        return Colors.orangeAccent;
     }
   }
 
@@ -330,8 +337,6 @@ class WorkbenchScreen extends ConsumerWidget {
         return Colors.orangeAccent;
       case UtilityModule.rotation:
         return Colors.redAccent;
-      case UtilityModule.transformationSequence:
-        return Colors.blueAccent;
       case UtilityModule.none:
         return Colors.white24;
     }

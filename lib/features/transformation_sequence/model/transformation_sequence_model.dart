@@ -50,11 +50,13 @@ class TransformationSequenceState with TransformationSequenceStateMappable {
   final List<TransformationStep> steps;
   final List<Offset> points;
   final int? selectedStepIndex;
+  final bool isQuickShape;
 
   const TransformationSequenceState({
     this.steps = const [],
     this.points = const [Offset(2, 2), Offset(5, 2), Offset(2, 5)], // Default triangle
     this.selectedStepIndex,
+    this.isQuickShape = false,
   });
 
   bool get hasPoints => points.isNotEmpty;

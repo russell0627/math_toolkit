@@ -19,7 +19,16 @@ enum MainModule {
   gridPythagorean(
     thematicTitle: 'GRID AUDIT (GRD-04)',
     normalTitle: 'COORDINATE GEOMETRY',
-  );
+  ),
+  transformationSequence(
+    thematicTitle: 'TRANSFORMATION COMPOSER',
+    normalTitle: 'TRANSFORMATION SEQUENCE',
+  ),
+  slopeAudit(
+    thematicTitle: 'SLOPE AUDIT (SLP-01)',
+    normalTitle: 'SLOPE CALCULATOR',
+  )
+  ;
 
   final String thematicTitle;
   final String normalTitle;
@@ -50,14 +59,11 @@ enum UtilityModule {
     thematicTitle: 'ROTATION MAPPER',
     normalTitle: 'ROTATION TOOL',
   ),
-  transformationSequence(
-    thematicTitle: 'TRANSFORMATION SEQ',
-    normalTitle: 'TRANSFORMATION SEQUENCE',
-  ),
   none(
     thematicTitle: 'NONE',
     normalTitle: 'NONE',
-  );
+  )
+  ;
 
   final String thematicTitle;
   final String normalTitle;
@@ -79,7 +85,8 @@ enum SubUtilityModule {
   none(
     thematicTitle: 'NONE',
     normalTitle: 'NONE',
-  );
+  )
+  ;
 
   final String thematicTitle;
   final String normalTitle;

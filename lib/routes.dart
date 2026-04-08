@@ -19,6 +19,7 @@ import 'features/minesweeper/presentation/minesweeper_screen.dart';
 import 'features/triangle_solver/presentation/triangle_solver_screen.dart';
 import 'features/pythagorean/presentation/pythagorean_screen.dart';
 import 'features/radical_simplifier/presentation/radical_screen.dart';
+import 'features/fraction_simplifier/presentation/fraction_simplifier_screen.dart';
 import 'features/workbench/presentation/workbench_screen.dart';
 
 part 'routes.g.dart';
@@ -71,7 +72,7 @@ GoRouter goRouter(Ref ref) {
           GoRoute(
             name: AppRoute.fractionSimplifier.name,
             path: AppRoute.fractionSimplifier.path,
-            builder: (context, state) => const FractionSimplifierView(),
+            builder: (context, state) => const FractionSimplifierScreen(),
           ),
           GoRoute(
             name: AppRoute.budgetAudit.name,

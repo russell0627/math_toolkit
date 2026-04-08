@@ -23,7 +23,7 @@ class TransformationSequenceView extends ConsumerWidget {
               children: [
                 _buildShapePreview(state),
                 const SizedBox(height: 24),
-                _buildVertexManager(state, ctrl),
+                _buildVertexManager(context, state, ctrl),
                 const SizedBox(height: 24),
                 _buildActionButtons(context, ctrl),
                 const SizedBox(height: 24),
@@ -40,7 +40,7 @@ class TransformationSequenceView extends ConsumerWidget {
 
   Widget _buildShapePreview(TransformationSequenceState state) {
     return Container(
-      height: 240,
+      height: isCompact ? 240 : 400,
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.3),
@@ -49,13 +49,13 @@ class TransformationSequenceView extends ConsumerWidget {
       ),
       child: ClipRect(
         child: CustomPaint(
-          painter: ShapePainter(state: state),
+          painter: ShapePainter(state: state, isCompact: isCompact),
         ),
       ),
     );
   }
 
-  Widget _buildVertexManager(TransformationSequenceState state, TransformationSequenceCtrl ctrl) {
+  Widget _buildVertexManager(BuildContext context, TransformationSequenceState state, TransformationSequenceCtrl ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -66,11 +66,26 @@ class TransformationSequenceView extends ConsumerWidget {
               "SHAPE VERTICES",
               style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold),
             ),
-            IconButton(
-              onPressed: () => ctrl.addPoint(const Offset(0, 0)),
-              icon: const Icon(Icons.add_circle_outline, color: Colors.blueAccent, size: 16),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
+            Row(
+              children: [
+                TextButton.icon(
+                  onPressed: () => _showQuickShapeDialog(context, ctrl),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.auto_awesome, size: 14, color: Colors.blueAccent),
+                  label: Text("QUICK", style: GoogleFonts.shareTechMono(fontSize: 10, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => ctrl.addPoint(const Offset(0, 0)),
+                  icon: const Icon(Icons.add_circle_outline, color: Colors.blueAccent, size: 16),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
             ),
           ],
         ),
@@ -118,6 +133,97 @@ class TransformationSequenceView extends ConsumerWidget {
           );
         }),
       ],
+    );
+  }
+
+  void _showQuickShapeDialog(BuildContext context, TransformationSequenceCtrl ctrl) {
+    String input = "2x2";
+    bool isCentered = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E1E1E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Colors.white10),
+              ),
+              title: Text("Quick Shape Generator", style: GoogleFonts.shareTechMono(color: Colors.white)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Enter dimensions (W x H):", style: GoogleFonts.shareTechMono(color: Colors.white70)),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    autofocus: true,
+                    initialValue: input,
+                    style: GoogleFonts.shareTechMono(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: "e.g., 2x4",
+                      hintStyle: GoogleFonts.shareTechMono(color: Colors.white24),
+                      filled: true,
+                      fillColor: Colors.black26,
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white10),
+                      ),
+                      enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white10),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blueAccent),
+                      ),
+                    ),
+                    onChanged: (val) => input = val,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Switch(
+                        value: isCentered,
+                        onChanged: (val) => setState(() => isCentered = val),
+                        activeThumbColor: Colors.blueAccent,
+                        activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(width: 8),
+                      Text("Center on origin", style: GoogleFonts.shareTechMono(color: Colors.white)),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text("CANCEL", style: GoogleFonts.shareTechMono(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                  onPressed: () {
+                    final parts = input.toLowerCase().split('x');
+                    if (parts.length == 2) {
+                      final w = double.tryParse(parts[0].trim());
+                      final h = double.tryParse(parts[1].trim());
+                      if (w != null && h != null) {
+                        ctrl.generateShape(w, h, isCentered: isCentered);
+                        Navigator.of(context).pop();
+                        return;
+                      }
+                    }
+                  },
+                  child: Text("GENERATE", style: GoogleFonts.shareTechMono(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -344,34 +450,43 @@ class TransformationSequenceView extends ConsumerWidget {
             style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10),
           ),
           const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildNotationUnit("(x, y)", state.points),
-                ...state.steps.map((step) => Row(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12),
-                      child: Icon(Icons.arrow_forward_ios, color: Colors.white10, size: 12),
-                    ),
-                    _buildNotationUnit("(${step.expressionX}, ${step.expressionY})", step.pointResults),
-                  ],
-                )),
-              ],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildNotationUnit("(x, y)", state.points, isQuickShape: state.isQuickShape),
+              ...state.steps.map((step) => Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Icon(Icons.arrow_downward, color: Colors.white10, size: 16),
+                  ),
+                  _buildNotationUnit("(${step.expressionX}, ${step.expressionY})", step.pointResults, isQuickShape: state.isQuickShape),
+                ],
+              )),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNotationUnit(String content, List<Offset> points) {
-    final preview = points.isEmpty 
-      ? "EMPTY" 
-      : points.length == 1 
-        ? "(${points[0].dx.toStringAsFixed(1)}, ${points[0].dy.toStringAsFixed(1)})"
-        : "VECTOR[${points.length}]";
+  Widget _buildNotationUnit(String content, List<Offset> points, {bool isQuickShape = false}) {
+    String preview = "EMPTY";
+    if (points.isNotEmpty) {
+      if (points.length == 1) {
+        preview = "(${points[0].dx.toStringAsFixed(1)}, ${points[0].dy.toStringAsFixed(1)})";
+      } else {
+        preview = points.map((p) => "(${p.dx.toStringAsFixed(1)}, ${p.dy.toStringAsFixed(1)})").join(", ");
+      }
+    }
+
+    String areaLabel = "";
+    if (isQuickShape && points.length == 4) {
+      final d1 = (points[1] - points[0]).distance;
+      final d2 = (points[2] - points[1]).distance;
+      String format(double v) => v.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '');
+      areaLabel = "Area: ${format(d1)} x ${format(d2)}";
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -386,9 +501,16 @@ class TransformationSequenceView extends ConsumerWidget {
             content,
             style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 16, fontWeight: FontWeight.bold),
           ),
+          if (areaLabel.isNotEmpty)
+            Text(
+              areaLabel,
+              style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          const SizedBox(height: 4),
           Text(
             preview,
             style: GoogleFonts.shareTechMono(color: Colors.white38, fontSize: 10),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -473,12 +595,13 @@ class TransformationSequenceView extends ConsumerWidget {
 
 class ShapePainter extends CustomPainter {
   final TransformationSequenceState state;
-  ShapePainter({required this.state});
+  final bool isCompact;
+  ShapePainter({required this.state, this.isCompact = false});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    const scale = 20.0;
+    final scale = isCompact ? 20.0 : 40.0;
 
     // Draw Grid
     final gridPaint = Paint()

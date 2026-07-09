@@ -310,19 +310,19 @@ class PythagoreanPainter extends CustomPainter {
     final double sideA = state.sideA!;
     final double sideB = state.sideB!;
     final double maxVal = math.max(sideA, sideB);
-    
+
     // Scale to fit the bottom area
     final double scale = (math.min(size.width, size.height) * 0.7) / maxVal;
     final h = sideA * scale;
     final w = sideB * scale;
-    
+
     // Center in the provided size
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     final pA = Offset(center.dx - w / 2, center.dy + h / 2);
     final pB = Offset(center.dx + w / 2, center.dy + h / 2);
     final pC = Offset(center.dx - w / 2, center.dy - h / 2);
-    
+
     final path = Path()
       ..moveTo(pA.dx, pA.dy)
       ..lineTo(pB.dx, pB.dy)
@@ -341,15 +341,24 @@ class PythagoreanPainter extends CustomPainter {
     canvas.drawPath(squarePath, paint);
 
     // Add labels
-    final spanA = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10), text: "a");
+    final spanA = TextSpan(
+      style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10),
+      text: "a",
+    );
     final tpA = TextPainter(text: spanA, textDirection: TextDirection.ltr)..layout();
     tpA.paint(canvas, Offset(pA.dx - 15, center.dy));
 
-    final spanB = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10), text: "b");
+    final spanB = TextSpan(
+      style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10),
+      text: "b",
+    );
     final tpB = TextPainter(text: spanB, textDirection: TextDirection.ltr)..layout();
     tpB.paint(canvas, Offset(center.dx, pA.dy + 5));
 
-    final spanC = TextSpan(style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 10), text: "c");
+    final spanC = TextSpan(
+      style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 10),
+      text: "c",
+    );
     final tpC = TextPainter(text: spanC, textDirection: TextDirection.ltr)..layout();
     tpC.paint(canvas, Offset(center.dx + 5, center.dy - 10));
   }

@@ -76,7 +76,14 @@ class TransformationSequenceView extends ConsumerWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: const Icon(Icons.auto_awesome, size: 14, color: Colors.blueAccent),
-                  label: Text("QUICK", style: GoogleFonts.shareTechMono(fontSize: 10, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+                  label: Text(
+                    "QUICK",
+                    style: GoogleFonts.shareTechMono(
+                      fontSize: 10,
+                      color: Colors.blueAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
@@ -151,48 +158,82 @@ class TransformationSequenceView extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
                 side: const BorderSide(color: Colors.white10),
               ),
-              title: Text("Quick Shape Generator", style: GoogleFonts.shareTechMono(color: Colors.white)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Enter dimensions (W x H):", style: GoogleFonts.shareTechMono(color: Colors.white70)),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    autofocus: true,
-                    initialValue: input,
-                    style: GoogleFonts.shareTechMono(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "e.g., 2x4",
-                      hintStyle: GoogleFonts.shareTechMono(color: Colors.white24),
-                      filled: true,
-                      fillColor: Colors.black26,
-                      border: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white10),
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white10),
-                      ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blueAccent),
-                      ),
-                    ),
-                    onChanged: (val) => input = val,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+              title: Text("Shape Selection", style: GoogleFonts.shareTechMono(color: Colors.white)),
+              content: SizedBox(
+                width: 400,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Switch(
-                        value: isCentered,
-                        onChanged: (val) => setState(() => isCentered = val),
-                        activeThumbColor: Colors.blueAccent,
-                        activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
+                      Text("PRESETS", style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10)),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ShapePreset.values.map((preset) {
+                          return InkWell(
+                            onTap: () {
+                              ctrl.generatePresetShape(preset);
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.blueAccent.withValues(alpha: 0.1),
+                                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                preset.label.toUpperCase(),
+                                style: GoogleFonts.shareTechMono(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                      const SizedBox(width: 8),
-                      Text("Center on origin", style: GoogleFonts.shareTechMono(color: Colors.white)),
+                      const SizedBox(height: 24),
+                      const Divider(color: Colors.white10),
+                      const SizedBox(height: 16),
+                      Text("CUSTOM RECTANGLE (W x H)", style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10)),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        autofocus: true,
+                        initialValue: input,
+                        style: GoogleFonts.shareTechMono(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: "e.g., 2x4",
+                          hintStyle: GoogleFonts.shareTechMono(color: Colors.white24),
+                          filled: true,
+                          fillColor: Colors.black26,
+                          border: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white10),
+                          ),
+                          enabledBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white10),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.blueAccent),
+                          ),
+                        ),
+                        onChanged: (val) => input = val,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Switch(
+                            value: isCentered,
+                            onChanged: (val) => setState(() => isCentered = val),
+                            activeThumbColor: Colors.blueAccent,
+                            activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
+                          ),
+                          const SizedBox(width: 8),
+                          Text("Center on origin", style: GoogleFonts.shareTechMono(color: Colors.white)),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -217,7 +258,7 @@ class TransformationSequenceView extends ConsumerWidget {
                       }
                     }
                   },
-                  child: Text("GENERATE", style: GoogleFonts.shareTechMono(fontWeight: FontWeight.bold)),
+                  child: Text("GENERATE CUSTOM", style: GoogleFonts.shareTechMono(fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -227,7 +268,11 @@ class TransformationSequenceView extends ConsumerWidget {
     );
   }
 
-  Widget _buildCoordinateField({required String label, required double value, required ValueChanged<String> onChanged}) {
+  Widget _buildCoordinateField({
+    required String label,
+    required double value,
+    required ValueChanged<String> onChanged,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -242,7 +287,10 @@ class TransformationSequenceView extends ConsumerWidget {
           Expanded(
             child: TextField(
               onChanged: onChanged,
-              controller: TextEditingController(text: value.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), ''))..selection = TextSelection.fromPosition(TextPosition(offset: value.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '').length)),
+              controller: TextEditingController(text: value.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), ''))
+                ..selection = TextSelection.fromPosition(
+                  TextPosition(offset: value.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '').length),
+                ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
               style: GoogleFonts.shareTechMono(color: Colors.white, fontSize: 13),
               decoration: const InputDecoration(
@@ -454,15 +502,21 @@ class TransformationSequenceView extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildNotationUnit("(x, y)", state.points, isQuickShape: state.isQuickShape),
-              ...state.steps.map((step) => Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Icon(Icons.arrow_downward, color: Colors.white10, size: 16),
-                  ),
-                  _buildNotationUnit("(${step.expressionX}, ${step.expressionY})", step.pointResults, isQuickShape: state.isQuickShape),
-                ],
-              )),
+              ...state.steps.map(
+                (step) => Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Icon(Icons.arrow_downward, color: Colors.white10, size: 16),
+                    ),
+                    _buildNotationUnit(
+                      "(${step.expressionX}, ${step.expressionY})",
+                      step.pointResults,
+                      isQuickShape: state.isQuickShape,
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -533,7 +587,10 @@ class TransformationSequenceView extends ConsumerWidget {
             if (state.selectedStepIndex != null)
               TextButton(
                 onPressed: () => ctrl.selectStep(null),
-                child: Text("CLEAR PREVIEW", style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 10)),
+                child: Text(
+                  "CLEAR PREVIEW",
+                  style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 10),
+                ),
               ),
           ],
         ),
@@ -559,7 +616,9 @@ class TransformationSequenceView extends ConsumerWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isSelected ? Colors.orangeAccent.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.02),
-                border: Border.all(color: isSelected ? Colors.orangeAccent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(
+                  color: isSelected ? Colors.orangeAccent.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.05),
+                ),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Row(
@@ -569,12 +628,18 @@ class TransformationSequenceView extends ConsumerWidget {
                     children: [
                       Text(
                         step.type.label,
-                        style: GoogleFonts.shareTechMono(color: isSelected ? Colors.orangeAccent : Colors.white70, fontSize: 13),
+                        style: GoogleFonts.shareTechMono(
+                          color: isSelected ? Colors.orangeAccent : Colors.white70,
+                          fontSize: 13,
+                        ),
                       ),
                       if (subtitle.isNotEmpty)
                         Text(
                           subtitle,
-                          style: GoogleFonts.shareTechMono(color: Colors.blueAccent.withValues(alpha: 0.4), fontSize: 11),
+                          style: GoogleFonts.shareTechMono(
+                            color: Colors.blueAccent.withValues(alpha: 0.4),
+                            fontSize: 11,
+                          ),
                         ),
                     ],
                   ),
@@ -629,7 +694,14 @@ class ShapePainter extends CustomPainter {
 
     // Draw Ghost Shape (Intermediate Step)
     if (state.selectedStepIndex != null && state.selectedStepIndex! < state.steps.length) {
-      _drawShape(canvas, state.steps[state.selectedStepIndex!].pointResults, center, scale, Colors.orangeAccent.withValues(alpha: 0.5), isDashed: true);
+      _drawShape(
+        canvas,
+        state.steps[state.selectedStepIndex!].pointResults,
+        center,
+        scale,
+        Colors.orangeAccent.withValues(alpha: 0.5),
+        isDashed: true,
+      );
     }
 
     // Draw Final Shape
@@ -638,7 +710,14 @@ class ShapePainter extends CustomPainter {
     }
   }
 
-  void _drawShape(Canvas canvas, List<Offset> points, Offset center, double scale, Color color, {bool isDashed = false}) {
+  void _drawShape(
+    Canvas canvas,
+    List<Offset> points,
+    Offset center,
+    double scale,
+    Color color, {
+    bool isDashed = false,
+  }) {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 2

@@ -12,8 +12,7 @@ part of 'fraction_simplifier_ctrl.dart';
 @ProviderFor(FractionSimplifierCtrl)
 const fractionSimplifierCtrlProvider = FractionSimplifierCtrlProvider._();
 
-final class FractionSimplifierCtrlProvider
-    extends $NotifierProvider<FractionSimplifierCtrl, FractionState> {
+final class FractionSimplifierCtrlProvider extends $NotifierProvider<FractionSimplifierCtrl, FractionState> {
   const FractionSimplifierCtrlProvider._()
     : super(
         from: null,
@@ -41,8 +40,7 @@ final class FractionSimplifierCtrlProvider
   }
 }
 
-String _$fractionSimplifierCtrlHash() =>
-    r'd09056e9406fc9e47a805640602e199cf4ccd3f6';
+String _$fractionSimplifierCtrlHash() => r'd09056e9406fc9e47a805640602e199cf4ccd3f6';
 
 abstract class _$FractionSimplifierCtrl extends $Notifier<FractionState> {
   FractionState build();
@@ -53,12 +51,7 @@ abstract class _$FractionSimplifierCtrl extends $Notifier<FractionState> {
     final ref = this.ref as $Ref<FractionState, FractionState>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<FractionState, FractionState>,
-              FractionState,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<FractionState, FractionState>, FractionState, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

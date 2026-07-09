@@ -267,8 +267,7 @@ class _TriangleViewState extends ConsumerState<TriangleView> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(
-                  child: _buildAngleField("INT", intCtrl, intFocus, onIntChanged, Colors.greenAccent, isUserInt)),
+              Expanded(child: _buildAngleField("INT", intCtrl, intFocus, onIntChanged, Colors.greenAccent, isUserInt)),
               const SizedBox(width: 8),
               Expanded(child: _buildAngleField("EXT", extCtrl, extFocus, onExtChanged, Colors.blueAccent, isUserExt)),
             ],

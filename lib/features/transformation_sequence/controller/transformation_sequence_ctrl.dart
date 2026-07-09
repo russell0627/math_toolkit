@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/transformation_sequence_model.dart';
@@ -12,19 +13,19 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
   }
 
   void setPoints(List<Offset> newPoints) {
-    state = state.copyWith(points: newPoints, isQuickShape: false);
+    state = state.copyWith(points: newPoints, isQuickShape: false, lastPreset: null);
     _recalculateResults();
   }
 
   void addPoint(Offset point) {
-    state = state.copyWith(points: [...state.points, point], isQuickShape: false);
+    state = state.copyWith(points: [...state.points, point], isQuickShape: false, lastPreset: null);
     _recalculateResults();
   }
 
   void removePoint(int index) {
     if (index < 0 || index >= state.points.length) return;
     final newPoints = List<Offset>.from(state.points)..removeAt(index);
-    state = state.copyWith(points: newPoints, isQuickShape: false);
+    state = state.copyWith(points: newPoints, isQuickShape: false, lastPreset: null);
     _recalculateResults();
   }
 
@@ -32,7 +33,7 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
     if (index < 0 || index >= state.points.length) return;
     final newPoints = List<Offset>.from(state.points);
     newPoints[index] = point;
-    state = state.copyWith(points: newPoints, isQuickShape: false);
+    state = state.copyWith(points: newPoints, isQuickShape: false, lastPreset: null);
     _recalculateResults();
   }
 
@@ -59,9 +60,84 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
         Offset(0, height),
       ];
     }
-    
-    state = state.copyWith(points: newPoints, isQuickShape: true);
+
+    state = state.copyWith(points: newPoints, isQuickShape: true, lastPreset: null);
     _recalculateResults();
+  }
+
+  void generatePresetShape(ShapePreset preset, {double size = 4.0}) {
+    List<Offset> newPoints = [];
+
+    switch (preset) {
+      case ShapePreset.triangle:
+        newPoints = [
+          const Offset(0, 2),
+          const Offset(-1.73, -1),
+          const Offset(1.73, -1),
+        ];
+      case ShapePreset.square:
+        final s2 = size / 2;
+        newPoints = [
+          Offset(-s2, s2),
+          Offset(s2, s2),
+          Offset(s2, -s2),
+          Offset(-s2, -s2),
+        ];
+      case ShapePreset.pentagon:
+        newPoints = _generateRegularPolygon(5, size / 2);
+      case ShapePreset.hexagon:
+        newPoints = _generateRegularPolygon(6, size / 2);
+      case ShapePreset.star:
+        newPoints = _generateStar(size / 2, size / 5);
+      case ShapePreset.arrow:
+        newPoints = [
+          const Offset(0, 2),
+          const Offset(1.5, 0),
+          const Offset(0.7, 0),
+          const Offset(0.7, -2),
+          const Offset(-0.7, -2),
+          const Offset(-0.7, 0),
+          const Offset(-1.5, 0),
+        ];
+      case ShapePreset.house:
+        newPoints = [
+          const Offset(0, 3),
+          const Offset(2, 1),
+          const Offset(2, -2),
+          const Offset(-2, -2),
+          const Offset(-2, 1),
+        ];
+      case ShapePreset.diamond:
+        final s2 = size / 2;
+        newPoints = [
+          Offset(0, s2),
+          Offset(s2, 0),
+          Offset(0, -s2),
+          Offset(-s2, 0),
+        ];
+    }
+
+    state = state.copyWith(points: newPoints, isQuickShape: true, lastPreset: preset);
+    _recalculateResults();
+  }
+
+  List<Offset> _generateRegularPolygon(int sides, double radius) {
+    final List<Offset> points = [];
+    for (int i = 0; i < sides; i++) {
+      final angle = (i * 2 * math.pi / sides) - math.pi / 2;
+      points.add(Offset(radius * math.cos(angle), -radius * math.sin(angle)));
+    }
+    return points;
+  }
+
+  List<Offset> _generateStar(double outerRadius, double innerRadius) {
+    final List<Offset> points = [];
+    for (int i = 0; i < 10; i++) {
+      final angle = (i * math.pi / 5) - math.pi / 2;
+      final r = i.isEven ? outerRadius : innerRadius;
+      points.add(Offset(r * math.cos(angle), -r * math.sin(angle)));
+    }
+    return points;
   }
 
   void addTransformation(
@@ -102,15 +178,17 @@ class TransformationSequenceCtrl extends _$TransformationSequenceCtrl {
 
     for (final step in state.steps) {
       final nextResults = currentResults
-          .map((p) => _applyTransformOffset(
-                p,
-                step.type,
-                h: step.h,
-                k: step.k,
-                scale: step.scale,
-                centerX: step.centerX,
-                centerY: step.centerY,
-              ))
+          .map(
+            (p) => _applyTransformOffset(
+              p,
+              step.type,
+              h: step.h,
+              k: step.k,
+              scale: step.scale,
+              centerX: step.centerX,
+              centerY: step.centerY,
+            ),
+          )
           .toList();
       updatedSteps.add(step.copyWith(pointResults: nextResults));
       currentResults = nextResults;

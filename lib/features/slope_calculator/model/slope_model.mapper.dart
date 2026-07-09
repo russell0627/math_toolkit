@@ -250,6 +250,40 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
     opt: true,
     def: const [],
   );
+  static String _$xLabel(SlopeState v) => v.xLabel;
+  static const Field<SlopeState, String> _f$xLabel = Field(
+    'xLabel',
+    _$xLabel,
+    opt: true,
+    def: "X",
+  );
+  static String _$yLabel(SlopeState v) => v.yLabel;
+  static const Field<SlopeState, String> _f$yLabel = Field(
+    'yLabel',
+    _$yLabel,
+    opt: true,
+    def: "Y",
+  );
+  static String? _$inputEquation(SlopeState v) => v.inputEquation;
+  static const Field<SlopeState, String> _f$inputEquation = Field(
+    'inputEquation',
+    _$inputEquation,
+    opt: true,
+  );
+  static bool _$isMinimalMode(SlopeState v) => v.isMinimalMode;
+  static const Field<SlopeState, bool> _f$isMinimalMode = Field(
+    'isMinimalMode',
+    _$isMinimalMode,
+    opt: true,
+    def: false,
+  );
+  static bool _$isPerfectlyLinear(SlopeState v) => v.isPerfectlyLinear;
+  static const Field<SlopeState, bool> _f$isPerfectlyLinear = Field(
+    'isPerfectlyLinear',
+    _$isPerfectlyLinear,
+    opt: true,
+    def: true,
+  );
 
   @override
   final MappableFields<SlopeState> fields = const {
@@ -270,6 +304,11 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
     #proportionalityConstant: _f$proportionalityConstant,
     #proportionalityFraction: _f$proportionalityFraction,
     #pointRatios: _f$pointRatios,
+    #xLabel: _f$xLabel,
+    #yLabel: _f$yLabel,
+    #inputEquation: _f$inputEquation,
+    #isMinimalMode: _f$isMinimalMode,
+    #isPerfectlyLinear: _f$isPerfectlyLinear,
   };
 
   static SlopeState _instantiate(DecodingData data) {
@@ -291,6 +330,11 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
       proportionalityConstant: data.dec(_f$proportionalityConstant),
       proportionalityFraction: data.dec(_f$proportionalityFraction),
       pointRatios: data.dec(_f$pointRatios),
+      xLabel: data.dec(_f$xLabel),
+      yLabel: data.dec(_f$yLabel),
+      inputEquation: data.dec(_f$inputEquation),
+      isMinimalMode: data.dec(_f$isMinimalMode),
+      isPerfectlyLinear: data.dec(_f$isPerfectlyLinear),
     );
   }
 
@@ -384,6 +428,11 @@ abstract class SlopeStateCopyWith<$R, $In extends SlopeState, $Out>
     double? proportionalityConstant,
     String? proportionalityFraction,
     List<double?>? pointRatios,
+    String? xLabel,
+    String? yLabel,
+    String? inputEquation,
+    bool? isMinimalMode,
+    bool? isPerfectlyLinear,
   });
   SlopeStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -464,6 +513,11 @@ class _SlopeStateCopyWithImpl<$R, $Out>
     Object? proportionalityConstant = $none,
     Object? proportionalityFraction = $none,
     List<double?>? pointRatios,
+    String? xLabel,
+    String? yLabel,
+    Object? inputEquation = $none,
+    bool? isMinimalMode,
+    bool? isPerfectlyLinear,
   }) => $apply(
     FieldCopyWithData({
       if (points != null) #points: points,
@@ -486,6 +540,11 @@ class _SlopeStateCopyWithImpl<$R, $Out>
       if (proportionalityFraction != $none)
         #proportionalityFraction: proportionalityFraction,
       if (pointRatios != null) #pointRatios: pointRatios,
+      if (xLabel != null) #xLabel: xLabel,
+      if (yLabel != null) #yLabel: yLabel,
+      if (inputEquation != $none) #inputEquation: inputEquation,
+      if (isMinimalMode != null) #isMinimalMode: isMinimalMode,
+      if (isPerfectlyLinear != null) #isPerfectlyLinear: isPerfectlyLinear,
     }),
   );
   @override
@@ -516,6 +575,14 @@ class _SlopeStateCopyWithImpl<$R, $Out>
       or: $value.proportionalityFraction,
     ),
     pointRatios: data.get(#pointRatios, or: $value.pointRatios),
+    xLabel: data.get(#xLabel, or: $value.xLabel),
+    yLabel: data.get(#yLabel, or: $value.yLabel),
+    inputEquation: data.get(#inputEquation, or: $value.inputEquation),
+    isMinimalMode: data.get(#isMinimalMode, or: $value.isMinimalMode),
+    isPerfectlyLinear: data.get(
+      #isPerfectlyLinear,
+      or: $value.isPerfectlyLinear,
+    ),
   );
 
   @override

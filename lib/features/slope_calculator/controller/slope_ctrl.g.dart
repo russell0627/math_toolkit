@@ -40,7 +40,7 @@ final class SlopeCtrlProvider extends $NotifierProvider<SlopeCtrl, SlopeState> {
   }
 }
 
-String _$slopeCtrlHash() => r'318b69f737fedda353feb481444fb566f4314b62';
+String _$slopeCtrlHash() => r'45fda90c3f9a4b35eae21b98f44096ddbf7ffd6a';
 
 abstract class _$SlopeCtrl extends $Notifier<SlopeState> {
   SlopeState build();

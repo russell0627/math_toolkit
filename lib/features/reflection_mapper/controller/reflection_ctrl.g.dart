@@ -12,8 +12,7 @@ part of 'reflection_ctrl.dart';
 @ProviderFor(ReflectionCtrl)
 const reflectionCtrlProvider = ReflectionCtrlProvider._();
 
-final class ReflectionCtrlProvider
-    extends $NotifierProvider<ReflectionCtrl, ReflectionState> {
+final class ReflectionCtrlProvider extends $NotifierProvider<ReflectionCtrl, ReflectionState> {
   const ReflectionCtrlProvider._()
     : super(
         from: null,
@@ -52,12 +51,7 @@ abstract class _$ReflectionCtrl extends $Notifier<ReflectionState> {
     final ref = this.ref as $Ref<ReflectionState, ReflectionState>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<ReflectionState, ReflectionState>,
-              ReflectionState,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<ReflectionState, ReflectionState>, ReflectionState, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

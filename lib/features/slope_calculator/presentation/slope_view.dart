@@ -16,8 +16,11 @@ class SlopeCalculatorView extends ConsumerStatefulWidget {
 class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
   final TextEditingController _xController = TextEditingController();
   final TextEditingController _yController = TextEditingController();
+  final TextEditingController _equationController = TextEditingController();
   final FocusNode _xFocus = FocusNode();
-  
+  final FocusNode _yFocus = FocusNode();
+  final FocusNode _eqFocus = FocusNode();
+
   Offset? _hoverOffset;
   int _activeTabIndex = 0;
 
@@ -33,11 +36,22 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
     }
   }
 
+  void _applyEquation() {
+    if (_equationController.text.isNotEmpty) {
+      ref.read(slopeCtrlProvider.notifier).setEquation(_equationController.text);
+      _equationController.clear();
+      _eqFocus.unfocus();
+    }
+  }
+
   @override
   void dispose() {
     _xController.dispose();
     _yController.dispose();
+    _equationController.dispose();
     _xFocus.dispose();
+    _yFocus.dispose();
+    _eqFocus.dispose();
     super.dispose();
   }
 
@@ -55,12 +69,12 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInputSection(),
+                _buildInputSection(state),
                 const SizedBox(height: 32),
                 if (state.points.isNotEmpty) ...[
                   _buildPointsList(state, ctrl),
                   const SizedBox(height: 32),
-                  _buildVisualizationSection(state),
+                  _buildVisualizationSection(state, ctrl),
                   const SizedBox(height: 32),
                 ],
                 if (state.slope != null || state.equation != null) _buildResultsSection(state),
@@ -72,7 +86,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
     );
   }
 
-  Widget _buildVisualizationSection(SlopeState state) {
+  Widget _buildVisualizationSection(SlopeState state, SlopeCtrl ctrl) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -83,11 +97,13 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
               "SLP-01 DATA VISUALIZATION",
               style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10),
             ),
-            if (_hoverOffset != null)
+            if (_hoverOffset != null && !state.isMinimalMode)
               Text(
                 "CROSSHAIR: INACTIVE READING",
                 style: GoogleFonts.shareTechMono(color: Colors.orangeAccent.withValues(alpha: 0.5), fontSize: 8),
               ),
+            const Spacer(),
+            _buildModeToggle(state, ctrl),
           ],
         ),
         const SizedBox(height: 12),
@@ -113,83 +129,184 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
     );
   }
 
+  Widget _buildModeToggle(SlopeState state, SlopeCtrl ctrl) {
+    return GestureDetector(
+      onTap: () => ctrl.toggleMinimalMode(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          color: state.isMinimalMode ? Colors.orangeAccent.withValues(alpha: 0.1) : Colors.transparent,
+          border: Border.all(color: state.isMinimalMode ? Colors.orangeAccent : Colors.white10),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              state.isMinimalMode ? Icons.visibility_off : Icons.visibility,
+              size: 12,
+              color: state.isMinimalMode ? Colors.orangeAccent : Colors.white24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              state.isMinimalMode ? "MINIMAL" : "STANDARD",
+              style: GoogleFonts.shareTechMono(
+                color: state.isMinimalMode ? Colors.orangeAccent : Colors.white24,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStatusBar(SlopeState state) {
     final hasPoints = state.points.length >= 2;
+    final isLinear = state.isPerfectlyLinear;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
-      color: Colors.orangeAccent.withValues(alpha: 0.05),
+      color: (isLinear ? Colors.orangeAccent : Colors.redAccent).withValues(alpha: 0.05),
       child: Row(
         children: [
           Icon(
-            hasPoints ? Icons.analytics : Icons.hourglass_empty,
+            !hasPoints
+                ? Icons.hourglass_empty
+                : isLinear
+                    ? Icons.analytics
+                    : Icons.analytics_outlined, 
             size: 14,
-            color: Colors.orangeAccent,
+            color: isLinear ? Colors.orangeAccent : Colors.redAccent,
           ),
           const SizedBox(width: 12),
           Text(
-            hasPoints ? "AUDIT READY: LINEAR REGRESSION ACTIVE" : "AWAITING SUFFICIENT DATA (MIN 2 POINTS)...",
-            style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 10),
+            !hasPoints
+                ? "AWAITING SUFFICIENT DATA (MIN 2 POINTS)..."
+                : isLinear
+                    ? "AUDIT READY: PERFECTLY LINEAR RELATIONSHIP"
+                    : "AUDIT READY: APPROXIMATE LINEAR REGRESSION ACTIVE",
+            style: GoogleFonts.shareTechMono(color: isLinear ? Colors.orangeAccent : Colors.redAccent, fontSize: 10),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInputSection() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.2),
-        border: Border.all(color: Colors.white10),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "COORDINATE INGESTION",
-            style: GoogleFonts.shareTechMono(color: Colors.white38, fontSize: 10),
+  Widget _buildInputSection(SlopeState state) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.2),
+            border: Border.all(color: Colors.white10),
+            borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(height: 24),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _xController,
-                  focusNode: _xFocus,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                  style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 18),
-                  decoration: _inputDecoration("X Value"),
-                  onSubmitted: (_) => _addPoint(),
-                ),
+              Text(
+                "COORDINATE INGESTION",
+                style: GoogleFonts.shareTechMono(color: Colors.white38, fontSize: 10),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextField(
-                  controller: _yController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                  style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 18),
-                  decoration: _inputDecoration("Y Value"),
-                  onSubmitted: (_) => _addPoint(),
-                ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: _addPoint,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent.withValues(alpha: 0.1),
-                  foregroundColor: Colors.orangeAccent,
-                  side: const BorderSide(color: Colors.orangeAccent, width: 0.5),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                ),
-                child: const Icon(Icons.add, size: 20),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _xController,
+                      focusNode: _xFocus,
+                      textInputAction: TextInputAction.next,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 18),
+                      decoration: _inputDecoration("${state.xLabel} Value"),
+                      onSubmitted: (_) => _yFocus.requestFocus(),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: _yController,
+                      focusNode: _yFocus,
+                      textInputAction: TextInputAction.done,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                      style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 18),
+                      decoration: _inputDecoration("${state.yLabel} Value"),
+                      onSubmitted: (_) => _addPoint(),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _addPoint,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent.withValues(alpha: 0.1),
+                      foregroundColor: Colors.orangeAccent,
+                      side: const BorderSide(color: Colors.orangeAccent, width: 0.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: const Icon(Icons.add, size: 20),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.orangeAccent.withValues(alpha: 0.02),
+            border: Border.all(color: Colors.orangeAccent.withValues(alpha: 0.05)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "DIRECT EQUATION INGESTION",
+                    style: GoogleFonts.shareTechMono(color: Colors.orangeAccent.withValues(alpha: 0.3), fontSize: 10),
+                  ),
+                  Tooltip(
+                    message: "Enter equations like 'p = 27.5h' or 'y = 2x + 10'",
+                    child: Icon(Icons.info_outline, size: 12, color: Colors.orangeAccent.withValues(alpha: 0.3)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _equationController,
+                      focusNode: _eqFocus,
+                      style: GoogleFonts.shareTechMono(color: Colors.orangeAccent, fontSize: 18),
+                      decoration: _inputDecoration("e.g. p = 27.5h"),
+                      onSubmitted: (_) => _applyEquation(),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: _applyEquation,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent.withValues(alpha: 0.1),
+                      foregroundColor: Colors.orangeAccent,
+                      side: const BorderSide(color: Colors.orangeAccent, width: 0.5),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: Text("APPLY", style: GoogleFonts.shareTechMono(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -285,16 +402,25 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildMetric(
-                  "SLOPE (m)", 
+                  "SLOPE (m)",
                   isVertical ? "UNDEFINED" : state.slopeFraction ?? "---",
                   subtitle: isVertical ? null : state.slope?.toStringAsFixed(4),
                 ),
                 const SizedBox(width: 48),
-                _buildMetric("INTERCEPT (b)", isVertical ? "---" : state.yIntercept?.toStringAsFixed(4) ?? "---"),
+                _buildMetric(
+                  "${state.yLabel} INTERCEPT (b)",
+                  isVertical ? "---" : state.yIntercept?.toStringAsFixed(4) ?? "---",
+                ),
                 const SizedBox(width: 48),
-                _buildMetric("RISE (Δy)", isVertical ? "---" : state.rise?.toStringAsFixed(2) ?? "---"),
+                _buildMetric(
+                  "RISE (Δ${state.yLabel.toLowerCase()})",
+                  isVertical ? "---" : state.rise?.toStringAsFixed(2) ?? "---",
+                ),
                 const SizedBox(width: 48),
-                _buildMetric("RUN (Δx)", isVertical ? "0.00" : state.run?.toStringAsFixed(2) ?? "---"),
+                _buildMetric(
+                  "RUN (Δ${state.xLabel.toLowerCase()})",
+                  isVertical ? "0.00" : state.run?.toStringAsFixed(2) ?? "---",
+                ),
                 const SizedBox(width: 48),
                 _buildMetric("DISTANCE (d)", state.distance?.toStringAsFixed(4) ?? "---"),
               ],
@@ -303,7 +429,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
           const SizedBox(height: 32),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-             width: double.infinity,
+            width: double.infinity,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.4),
@@ -355,9 +481,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
             // Tab Content
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
-              child: _activeTabIndex == 0 
-                ? _buildSegmentAudit(state) 
-                : _buildProportionalityAnalysis(state),
+              child: _activeTabIndex == 0 ? _buildSegmentAudit(state) : _buildProportionalityAnalysis(state),
             ),
           ],
         ],
@@ -438,7 +562,9 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isProp ? "The relationship passes through (0,0) with a constant ratio." : "Data fails the vertical intercept or constant ratio requirement (y=kx).",
+                        isProp
+                            ? "The relationship passes through (0,0) with a constant ratio."
+                            : "Data fails the vertical intercept or constant ratio requirement (${state.yLabel}=k${state.xLabel}).",
                         style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10),
                       ),
                     ],
@@ -455,7 +581,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
                   width: double.infinity,
                   color: Colors.black.withValues(alpha: 0.3),
                   child: Text(
-                    "MODEL: ${kFrac == "1" ? "y = x" : "y = ($kFrac)x"}",
+                    "MODEL: ${kFrac == "1" ? "${state.yLabel} = ${state.xLabel}" : "${state.yLabel} = ($kFrac)${state.xLabel}"}",
                     style: GoogleFonts.shareTechMono(color: Colors.greenAccent, fontSize: 18),
                     textAlign: TextAlign.center,
                   ),
@@ -498,9 +624,9 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
                 children: [
                   _tableCell("FROM", header: true),
                   _tableCell("TO", header: true),
-                  _tableCell("ΔX", header: true),
-                  _tableCell("ΔY", header: true),
-                  _tableCell("RATIO (y/x)", header: true),
+                  _tableCell("Δ${state.xLabel}", header: true),
+                  _tableCell("Δ${state.yLabel}", header: true),
+                  _tableCell("RATIO (${state.yLabel}/${state.xLabel})", header: true),
                   _tableCell("M", header: true),
                   _tableCell("DIST", header: true),
                 ],
@@ -509,7 +635,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
                 final p1 = state.points[i];
                 final p2 = state.points[i + 1];
                 final mFrac = state.segmentSlopesFractions[i];
-                final ratio = state.pointRatios[i+1]?.toStringAsFixed(3) ?? "---";
+                final ratio = state.pointRatios[i + 1]?.toStringAsFixed(3) ?? "---";
                 return TableRow(
                   children: [
                     _tableCell("(${p1.x}, ${p1.y})"),
@@ -575,19 +701,21 @@ class SlopeGridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
+    final isMinimal = state.isMinimalMode;
 
-    // 1. Draw Subtle Background Grid
-    final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.03)
-      ..strokeWidth = 1;
+    // 1. Draw Subtle Background Grid (Disabled in Minimal)
+    if (!isMinimal) {
+      final gridPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.03)
+        ..strokeWidth = 1;
 
-    const spacing = 40.0;
-    for (var i = 0.0; i < size.width; i += spacing) {
-      canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
-    }
-    for (var i = 0.0; i < size.height; i += spacing) {
-      canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
+      const spacing = 40.0;
+      for (var i = 0.0; i < size.width; i += spacing) {
+        canvas.drawLine(Offset(i, 0), Offset(i, size.height), gridPaint);
+      }
+      for (var i = 0.0; i < size.height; i += spacing) {
+        canvas.drawLine(Offset(0, i), Offset(size.width, i), gridPaint);
+      }
     }
 
     if (state.points.isEmpty) {
@@ -640,25 +768,31 @@ class SlopeGridPainter extends CustomPainter {
 
       // 3. Draw Adaptive Axes
       final axesPaint = Paint()
-        ..color = Colors.white.withValues(alpha: 0.1)
-        ..strokeWidth = 1.5;
+        ..color = Colors.white.withValues(alpha: isMinimal ? 0.3 : 0.1)
+        ..strokeWidth = isMinimal ? 2.0 : 1.5;
 
-      final originPos = map(0, 0);
-      // Vertical Axis (x=0)
-      if (originPos.dx >= 0 && originPos.dx <= size.width) {
-        canvas.drawLine(Offset(originPos.dx, 0), Offset(originPos.dx, size.height), axesPaint);
-      }
-      // Horizontal Axis (y=0)
-      if (originPos.dy >= 0 && originPos.dy <= size.height) {
-        canvas.drawLine(Offset(0, originPos.dy), Offset(size.width, originPos.dy), axesPaint);
+      if (isMinimal) {
+        // Solid Left and Bottom Lines
+        canvas.drawLine(Offset.zero, Offset(0, size.height), axesPaint);
+        canvas.drawLine(Offset(0, size.height), Offset(size.width, size.height), axesPaint);
+      } else {
+        final originPos = map(0, 0);
+        // Vertical Axis (x=0)
+        if (originPos.dx >= 0 && originPos.dx <= size.width) {
+          canvas.drawLine(Offset(originPos.dx, 0), Offset(originPos.dx, size.height), axesPaint);
+        }
+        // Horizontal Axis (y=0)
+        if (originPos.dy >= 0 && originPos.dy <= size.height) {
+          canvas.drawLine(Offset(0, originPos.dy), Offset(size.width, originPos.dy), axesPaint);
+        }
       }
 
       // --- NEW: Draw Cursor Crosshair ---
-      if (hoverOffset != null) {
+      if (hoverOffset != null && !isMinimal) {
         final crosshairPaint = Paint()
           ..color = Colors.orangeAccent.withValues(alpha: 0.2)
           ..strokeWidth = 0.5;
-        
+
         // Horizontal line
         canvas.drawLine(Offset(0, hoverOffset!.dy), Offset(size.width, hoverOffset!.dy), crosshairPaint);
         // Vertical line
@@ -668,9 +802,9 @@ class SlopeGridPainter extends CustomPainter {
         final tx = (hoverOffset!.dx - size.width / 2) / scale + dataCenterX;
         final ty = (size.height / 2 - hoverOffset!.dy) / scale + dataCenterY;
         _drawLabel(
-          canvas, 
-          "[${tx.toStringAsFixed(2)}, ${ty.toStringAsFixed(2)}]", 
-          hoverOffset!.translate(10, 10), 
+          canvas,
+          "${state.xLabel}: ${tx.toStringAsFixed(2)} | ${state.yLabel}: ${ty.toStringAsFixed(2)}",
+          hoverOffset!.translate(10, 10),
           Colors.orangeAccent.withValues(alpha: 0.4),
         );
       }
@@ -703,7 +837,7 @@ class SlopeGridPainter extends CustomPainter {
           if (state.run! != 0) {
             final minXDat = state.points.map((p) => p.x).reduce(math.min);
             final maxXDat = state.points.map((p) => p.x).reduce(math.max);
-            
+
             final trP1 = map(minXDat, state.slope! * minXDat + state.yIntercept!);
             final trP2 = map(maxXDat, state.slope! * maxXDat + state.yIntercept!);
             final trCorner = Offset(trP2.dx, trP1.dy);
@@ -712,25 +846,27 @@ class SlopeGridPainter extends CustomPainter {
               ..color = Colors.orangeAccent.withValues(alpha: 0.5)
               ..strokeWidth = 1.5
               ..style = PaintingStyle.stroke;
-            
+
             final path = Path()
               ..moveTo(trP1.dx, trP1.dy)
               ..lineTo(trCorner.dx, trCorner.dy)
               ..lineTo(trP2.dx, trP2.dy);
-            
+
             canvas.drawPath(path, trianglePaint);
 
-            // Labels for Rise/Run
-            _drawMidpointLabel(canvas, "RUN: ${state.run!.toStringAsFixed(2)}", trP1, trCorner, Colors.orangeAccent);
-            _drawMidpointLabel(canvas, "RISE: ${state.rise!.toStringAsFixed(2)}", trCorner, trP2, Colors.orangeAccent);
-            _drawMidpointLabel(
-              canvas,
-              "DIST: ${state.distance!.toStringAsFixed(2)}",
-              trP1,
-              trP2,
-              Colors.orangeAccent,
-              isHypotenuse: true,
-            );
+            // Labels for Rise/Run (Only in Standard mode)
+            if (!isMinimal) {
+              _drawMidpointLabel(canvas, "RUN: ${state.run!.toStringAsFixed(2)}", trP1, trCorner, Colors.orangeAccent);
+              _drawMidpointLabel(canvas, "RISE: ${state.rise!.toStringAsFixed(2)}", trCorner, trP2, Colors.orangeAccent);
+              _drawMidpointLabel(
+                canvas,
+                "DIST: ${state.distance!.toStringAsFixed(2)}",
+                trP1,
+                trP2,
+                Colors.orangeAccent,
+                isHypotenuse: true,
+              );
+            }
           }
         }
       }
@@ -739,24 +875,26 @@ class SlopeGridPainter extends CustomPainter {
       for (int i = 0; i < state.points.length; i++) {
         final p = state.points[i];
         final pos = map(p.x, p.y);
-        
+
         // Draw segment to next point
         if (i < state.points.length - 1) {
           final nextP = state.points[i + 1];
           final nextPos = map(nextP.x, nextP.y);
-          
+
           canvas.drawLine(
-            pos, 
-            nextPos, 
+            pos,
+            nextPos,
             Paint()
               ..color = Colors.white.withValues(alpha: 0.2)
               ..strokeWidth = 1
-              ..style = PaintingStyle.stroke
+              ..style = PaintingStyle.stroke,
           );
         }
 
         canvas.drawCircle(pos, 4, Paint()..color = Colors.orangeAccent);
-        _drawLabel(canvas, "(${p.x}, ${p.y})", pos, Colors.orangeAccent.withValues(alpha: 0.5));
+        if (!isMinimal) {
+          _drawLabel(canvas, "(${p.x}, ${p.y})", pos, Colors.orangeAccent.withValues(alpha: 0.5));
+        }
       }
     }
   }
@@ -774,10 +912,10 @@ class SlopeGridPainter extends CustomPainter {
   }
 
   void _drawMidpointLabel(
-    Canvas canvas, 
-    String text, 
-    Offset a, 
-    Offset b, 
+    Canvas canvas,
+    String text,
+    Offset a,
+    Offset b,
     Color color, {
     bool isHypotenuse = false,
     bool smaller = false,
@@ -796,7 +934,7 @@ class SlopeGridPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     tp.layout();
-    
+
     // Offset for hypotenuse to avoid overlap with line
     final offset = isHypotenuse ? const Offset(0, -15) : Offset.zero;
     tp.paint(canvas, mid.translate(-tp.width / 2 + offset.dx, -tp.height / 2 + offset.dy));

@@ -87,12 +87,14 @@ class MathUtils {
 
     // Continued fraction algorithm
     for (int i = 0; i < 10; i++) {
-       if ((absVal - h / k).abs() < tolerance) break;
+      if ((absVal - h / k).abs() < tolerance) break;
       if (x - a < tolerance) break;
       x = 1.0 / (x - a);
       a = x.floor();
-      h2 = h1; h1 = h;
-      k2 = k1; k1 = k;
+      h2 = h1;
+      h1 = h;
+      k2 = k1;
+      k1 = k;
       h = a * h1 + h2;
       k = a * k1 + k2;
       if (k > 10000) break; // Limit denominator size

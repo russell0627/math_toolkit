@@ -14,10 +14,27 @@ enum TransformationType {
   rotate270CCW('ROTATE 270° CCW'),
   rotate270CW('ROTATE 270° CW'),
   translate('TRANSLATE (h, k)'),
-  dilate('DILATE (k)');
+  dilate('DILATE (k)')
+  ;
 
   final String label;
   const TransformationType(this.label);
+}
+
+@MappableEnum()
+enum ShapePreset {
+  triangle('Triangle'),
+  square('Square'),
+  pentagon('Pentagon'),
+  hexagon('Hexagon'),
+  star('Star'),
+  arrow('Arrow'),
+  house('House'),
+  diamond('Diamond'),
+  ;
+
+  final String label;
+  const ShapePreset(this.label);
 }
 
 @MappableClass()
@@ -51,12 +68,14 @@ class TransformationSequenceState with TransformationSequenceStateMappable {
   final List<Offset> points;
   final int? selectedStepIndex;
   final bool isQuickShape;
+  final ShapePreset? lastPreset;
 
   const TransformationSequenceState({
     this.steps = const [],
     this.points = const [Offset(2, 2), Offset(5, 2), Offset(2, 5)], // Default triangle
     this.selectedStepIndex,
     this.isQuickShape = false,
+    this.lastPreset,
   });
 
   bool get hasPoints => points.isNotEmpty;

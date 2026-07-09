@@ -86,6 +86,76 @@ extension TransformationTypeMapperExtension on TransformationType {
   }
 }
 
+class ShapePresetMapper extends EnumMapper<ShapePreset> {
+  ShapePresetMapper._();
+
+  static ShapePresetMapper? _instance;
+  static ShapePresetMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = ShapePresetMapper._());
+    }
+    return _instance!;
+  }
+
+  static ShapePreset fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  ShapePreset decode(dynamic value) {
+    switch (value) {
+      case r'triangle':
+        return ShapePreset.triangle;
+      case r'square':
+        return ShapePreset.square;
+      case r'pentagon':
+        return ShapePreset.pentagon;
+      case r'hexagon':
+        return ShapePreset.hexagon;
+      case r'star':
+        return ShapePreset.star;
+      case r'arrow':
+        return ShapePreset.arrow;
+      case r'house':
+        return ShapePreset.house;
+      case r'diamond':
+        return ShapePreset.diamond;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(ShapePreset self) {
+    switch (self) {
+      case ShapePreset.triangle:
+        return r'triangle';
+      case ShapePreset.square:
+        return r'square';
+      case ShapePreset.pentagon:
+        return r'pentagon';
+      case ShapePreset.hexagon:
+        return r'hexagon';
+      case ShapePreset.star:
+        return r'star';
+      case ShapePreset.arrow:
+        return r'arrow';
+      case ShapePreset.house:
+        return r'house';
+      case ShapePreset.diamond:
+        return r'diamond';
+    }
+  }
+}
+
+extension ShapePresetMapperExtension on ShapePreset {
+  String toValue() {
+    ShapePresetMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<ShapePreset>(this) as String;
+  }
+}
+
 class TransformationStepMapper extends ClassMapperBase<TransformationStep> {
   TransformationStepMapper._();
 
@@ -330,6 +400,7 @@ class TransformationSequenceStateMapper
         _instance = TransformationSequenceStateMapper._(),
       );
       TransformationStepMapper.ensureInitialized();
+      ShapePresetMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -360,6 +431,10 @@ class TransformationSequenceStateMapper
     opt: true,
     def: false,
   );
+  static ShapePreset? _$lastPreset(TransformationSequenceState v) =>
+      v.lastPreset;
+  static const Field<TransformationSequenceState, ShapePreset> _f$lastPreset =
+      Field('lastPreset', _$lastPreset, opt: true);
 
   @override
   final MappableFields<TransformationSequenceState> fields = const {
@@ -367,6 +442,7 @@ class TransformationSequenceStateMapper
     #points: _f$points,
     #selectedStepIndex: _f$selectedStepIndex,
     #isQuickShape: _f$isQuickShape,
+    #lastPreset: _f$lastPreset,
   };
 
   static TransformationSequenceState _instantiate(DecodingData data) {
@@ -375,6 +451,7 @@ class TransformationSequenceStateMapper
       points: data.dec(_f$points),
       selectedStepIndex: data.dec(_f$selectedStepIndex),
       isQuickShape: data.dec(_f$isQuickShape),
+      lastPreset: data.dec(_f$lastPreset),
     );
   }
 
@@ -464,6 +541,7 @@ abstract class TransformationSequenceStateCopyWith<
     List<Offset>? points,
     int? selectedStepIndex,
     bool? isQuickShape,
+    ShapePreset? lastPreset,
   });
   TransformationSequenceStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -511,12 +589,14 @@ class _TransformationSequenceStateCopyWithImpl<$R, $Out>
     List<Offset>? points,
     Object? selectedStepIndex = $none,
     bool? isQuickShape,
+    Object? lastPreset = $none,
   }) => $apply(
     FieldCopyWithData({
       if (steps != null) #steps: steps,
       if (points != null) #points: points,
       if (selectedStepIndex != $none) #selectedStepIndex: selectedStepIndex,
       if (isQuickShape != null) #isQuickShape: isQuickShape,
+      if (lastPreset != $none) #lastPreset: lastPreset,
     }),
   );
   @override
@@ -529,6 +609,7 @@ class _TransformationSequenceStateCopyWithImpl<$R, $Out>
           or: $value.selectedStepIndex,
         ),
         isQuickShape: data.get(#isQuickShape, or: $value.isQuickShape),
+        lastPreset: data.get(#lastPreset, or: $value.lastPreset),
       );
 
   @override

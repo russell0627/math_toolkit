@@ -12,8 +12,7 @@ part of 'rotation_ctrl.dart';
 @ProviderFor(RotationCtrl)
 const rotationCtrlProvider = RotationCtrlProvider._();
 
-final class RotationCtrlProvider
-    extends $NotifierProvider<RotationCtrl, RotationState> {
+final class RotationCtrlProvider extends $NotifierProvider<RotationCtrl, RotationState> {
   const RotationCtrlProvider._()
     : super(
         from: null,
@@ -52,12 +51,7 @@ abstract class _$RotationCtrl extends $Notifier<RotationState> {
     final ref = this.ref as $Ref<RotationState, RotationState>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<RotationState, RotationState>,
-              RotationState,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<RotationState, RotationState>, RotationState, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

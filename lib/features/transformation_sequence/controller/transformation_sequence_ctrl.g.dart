@@ -47,7 +47,7 @@ final class TransformationSequenceCtrlProvider
 }
 
 String _$transformationSequenceCtrlHash() =>
-    r'9df1096c1818bee9097a7c46f87ab7dbb8d6e167';
+    r'46ba0a324660dc50218e700a54b7c1f719fc23c9';
 
 abstract class _$TransformationSequenceCtrl
     extends $Notifier<TransformationSequenceState> {

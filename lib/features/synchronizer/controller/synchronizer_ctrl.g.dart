@@ -12,8 +12,7 @@ part of 'synchronizer_ctrl.dart';
 @ProviderFor(SynchronizerCtrl)
 const synchronizerCtrlProvider = SynchronizerCtrlProvider._();
 
-final class SynchronizerCtrlProvider
-    extends $NotifierProvider<SynchronizerCtrl, SyncState> {
+final class SynchronizerCtrlProvider extends $NotifierProvider<SynchronizerCtrl, SyncState> {
   const SynchronizerCtrlProvider._()
     : super(
         from: null,
@@ -51,13 +50,7 @@ abstract class _$SynchronizerCtrl extends $Notifier<SyncState> {
     final created = build();
     final ref = this.ref as $Ref<SyncState, SyncState>;
     final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<SyncState, SyncState>,
-              SyncState,
-              Object?,
-              Object?
-            >;
+        ref.element as $ClassProviderElement<AnyNotifier<SyncState, SyncState>, SyncState, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

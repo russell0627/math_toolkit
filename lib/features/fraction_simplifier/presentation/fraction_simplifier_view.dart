@@ -46,24 +46,38 @@ class FractionSimplifierView extends ConsumerWidget {
             styles,
           ),
           SizedBox(height: isCompact ? 20 : 40),
-          ElevatedButton(
-            onPressed: ctrl.simplify,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amberAccent,
-              foregroundColor: Colors.black,
-              minimumSize: Size(double.infinity, isCompact ? 40 : 50),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            ),
-            child: Text(
-              isCompact ? "SIMPLIFY" : "EXECUTE SIMPLIFICATION",
-              style: GoogleFonts.ebGaramond(
-                textStyle: TextStyle(
-                  fontWeight: FontWeight.bold, 
-                  letterSpacing: 2,
-                  fontSize: isCompact ? 10 : 12,
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: ctrl.simplify,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amberAccent,
+                    foregroundColor: Colors.black,
+                    minimumSize: Size(double.infinity, isCompact ? 40 : 50),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                  child: Text(
+                    isCompact ? "EXECUTE" : "EXECUTE SIMPLIFICATION",
+                    style: GoogleFonts.ebGaramond(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                        fontSize: isCompact ? 10 : 12,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              if (isCompact) const SizedBox(width: 8),
+              if (isCompact)
+                IconButton(
+                  onPressed: ctrl.clear,
+                  icon: const Icon(Icons.refresh, color: Colors.amberAccent),
+                  tooltip: "RESET",
+                ),
+            ],
           ),
           SizedBox(height: isCompact ? 20 : 40),
           if (state.isSimplified) _buildResultDisplay(state, styles),
@@ -124,7 +138,10 @@ class FractionSimplifierView extends ConsumerWidget {
         children: [
           Text(
             "REDUCED FORM",
-            style: GoogleFonts.cutiveMono(color: Colors.greenAccent.withValues(alpha: 0.5), fontSize: isCompact ? 8 : 10),
+            style: GoogleFonts.cutiveMono(
+              color: Colors.greenAccent.withValues(alpha: 0.5),
+              fontSize: isCompact ? 8 : 10,
+            ),
           ),
           SizedBox(height: isCompact ? 8 : 12),
           FittedBox(

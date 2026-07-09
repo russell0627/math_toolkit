@@ -109,14 +109,15 @@ class AlgebraCtrl extends _$AlgebraCtrl {
   void swapSides() {
     final current = state.equations[state.selectedIndex];
     String nextRelation = current.relation;
-    if (nextRelation == "<")
+    if (nextRelation == "<") {
       nextRelation = ">";
-    else if (nextRelation == ">")
+    } else if (nextRelation == ">") {
       nextRelation = "<";
-    else if (nextRelation == "<=")
+    } else if (nextRelation == "<=") {
       nextRelation = ">=";
-    else if (nextRelation == ">=")
+    } else if (nextRelation == ">=") {
       nextRelation = "<=";
+    }
 
     setEquation(current.right, current.left, relation: nextRelation);
     state = state.copyWith(lastOp: "SYMMETRY PROTOCOL APPLIED");
@@ -255,14 +256,15 @@ class AlgebraCtrl extends _$AlgebraCtrl {
     if ((op == "*" || op == "/") && nextRelation != "=") {
       final numValue = double.tryParse(value.trim());
       if (numValue != null && numValue < 0) {
-        if (nextRelation == "<")
+        if (nextRelation == "<") {
           nextRelation = ">";
-        else if (nextRelation == ">")
+        } else if (nextRelation == ">") {
           nextRelation = "<";
-        else if (nextRelation == "<=")
+        } else if (nextRelation == "<=") {
           nextRelation = ">=";
-        else if (nextRelation == ">=")
+        } else if (nextRelation == ">=") {
           nextRelation = "<=";
+        }
       }
     }
 
@@ -436,14 +438,15 @@ class AlgebraCtrl extends _$AlgebraCtrl {
         final double solution = -f0 / slope;
         String nextRelation = current.relation;
         if (slope < 0 && nextRelation != "=") {
-          if (nextRelation == "<")
+          if (nextRelation == "<") {
             nextRelation = ">";
-          else if (nextRelation == ">")
+          } else if (nextRelation == ">") {
             nextRelation = "<";
-          else if (nextRelation == "<=")
+          } else if (nextRelation == "<=") {
             nextRelation = ">=";
-          else if (nextRelation == ">=")
+          } else if (nextRelation == ">=") {
             nextRelation = "<=";
+          }
         }
         _applySolution(varName, _formatDouble(solution), relation: nextRelation);
         return;

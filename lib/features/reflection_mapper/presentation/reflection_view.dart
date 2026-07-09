@@ -38,10 +38,10 @@ class _ReflectionViewState extends ConsumerState<ReflectionView> {
 
     // Sync controllers if not focused
     if (_xCtrl.text != (state.x?.toString() ?? "") && !FocusScope.of(context).hasFocus) {
-       _xCtrl.text = state.x?.toString() ?? "";
+      _xCtrl.text = state.x?.toString() ?? "";
     }
     if (_yCtrl.text != (state.y?.toString() ?? "") && !FocusScope.of(context).hasFocus) {
-       _yCtrl.text = state.y?.toString() ?? "";
+      _yCtrl.text = state.y?.toString() ?? "";
     }
 
     return Column(
@@ -102,7 +102,10 @@ class _ReflectionViewState extends ConsumerState<ReflectionView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10)),
-        Text(rule, style: GoogleFonts.shareTechMono(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(
+          rule,
+          style: GoogleFonts.shareTechMono(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -238,20 +241,28 @@ class ReflectionPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     // Draw Axes
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), paint..color = Colors.white.withValues(alpha: 0.05));
-    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), paint..color = Colors.white.withValues(alpha: 0.05));
+    canvas.drawLine(
+      Offset(0, center.dy),
+      Offset(size.width, center.dy),
+      paint..color = Colors.white.withValues(alpha: 0.05),
+    );
+    canvas.drawLine(
+      Offset(center.dx, 0),
+      Offset(center.dx, size.height),
+      paint..color = Colors.white.withValues(alpha: 0.05),
+    );
 
     if (state.hasInput) {
       final x = state.x!;
       final y = state.y!;
-      
+
       final maxVal = math.max(x.abs(), y.abs());
       final scale = (size.width * 0.4) / (maxVal == 0 ? 1 : maxVal);
 
       void drawPoint(double px, double py, Color color, String label) {
         final pos = Offset(center.dx + px * scale, center.dy - py * scale);
         canvas.drawCircle(pos, 4, Paint()..color = color);
-        
+
         final tp = TextPainter(
           text: TextSpan(
             text: label,
@@ -277,7 +288,7 @@ class ReflectionPainter extends CustomPainter {
         ..color = Colors.white.withValues(alpha: 0.1)
         ..strokeWidth = 1
         ..style = PaintingStyle.stroke;
-      
+
       final pOrig = Offset(center.dx + x * scale, center.dy - y * scale);
       final pX = Offset(center.dx + x * scale, center.dy + y * scale);
       final pY = Offset(center.dx - x * scale, center.dy - y * scale);

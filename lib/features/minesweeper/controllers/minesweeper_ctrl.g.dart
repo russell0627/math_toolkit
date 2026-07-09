@@ -12,8 +12,7 @@ part of 'minesweeper_ctrl.dart';
 @ProviderFor(MinesweeperCtrl)
 const minesweeperCtrlProvider = MinesweeperCtrlProvider._();
 
-final class MinesweeperCtrlProvider
-    extends $NotifierProvider<MinesweeperCtrl, MinesweeperBoard> {
+final class MinesweeperCtrlProvider extends $NotifierProvider<MinesweeperCtrl, MinesweeperBoard> {
   const MinesweeperCtrlProvider._()
     : super(
         from: null,
@@ -65,8 +64,7 @@ abstract class _$MinesweeperCtrl extends $Notifier<MinesweeperBoard> {
 @ProviderFor(MinesweeperControlMode)
 const minesweeperControlModeProvider = MinesweeperControlModeProvider._();
 
-final class MinesweeperControlModeProvider
-    extends $NotifierProvider<MinesweeperControlMode, MinesweeperMode> {
+final class MinesweeperControlModeProvider extends $NotifierProvider<MinesweeperControlMode, MinesweeperMode> {
   const MinesweeperControlModeProvider._()
     : super(
         from: null,
@@ -94,8 +92,7 @@ final class MinesweeperControlModeProvider
   }
 }
 
-String _$minesweeperControlModeHash() =>
-    r'dc1f602dbcaf1fa1a69a4a8b5582bbfbf1b885bc';
+String _$minesweeperControlModeHash() => r'dc1f602dbcaf1fa1a69a4a8b5582bbfbf1b885bc';
 
 abstract class _$MinesweeperControlMode extends $Notifier<MinesweeperMode> {
   MinesweeperMode build();
@@ -106,12 +103,7 @@ abstract class _$MinesweeperControlMode extends $Notifier<MinesweeperMode> {
     final ref = this.ref as $Ref<MinesweeperMode, MinesweeperMode>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<MinesweeperMode, MinesweeperMode>,
-              MinesweeperMode,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<MinesweeperMode, MinesweeperMode>, MinesweeperMode, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

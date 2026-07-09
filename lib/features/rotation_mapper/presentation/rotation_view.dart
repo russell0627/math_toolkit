@@ -38,10 +38,10 @@ class _RotationViewState extends ConsumerState<RotationView> {
 
     // Sync controllers if not focused
     if (_xCtrl.text != (state.x?.toString() ?? "") && !FocusScope.of(context).hasFocus) {
-       _xCtrl.text = state.x?.toString() ?? "";
+      _xCtrl.text = state.x?.toString() ?? "";
     }
     if (_yCtrl.text != (state.y?.toString() ?? "") && !FocusScope.of(context).hasFocus) {
-       _yCtrl.text = state.y?.toString() ?? "";
+      _yCtrl.text = state.y?.toString() ?? "";
     }
 
     return Column(
@@ -102,7 +102,10 @@ class _RotationViewState extends ConsumerState<RotationView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 10)),
-        Text(rule, style: GoogleFonts.shareTechMono(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(
+          rule,
+          style: GoogleFonts.shareTechMono(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -238,13 +241,21 @@ class RotationPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     // Draw Axes
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), paint..color = Colors.white.withValues(alpha: 0.05));
-    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), paint..color = Colors.white.withValues(alpha: 0.05));
+    canvas.drawLine(
+      Offset(0, center.dy),
+      Offset(size.width, center.dy),
+      paint..color = Colors.white.withValues(alpha: 0.05),
+    );
+    canvas.drawLine(
+      Offset(center.dx, 0),
+      Offset(center.dx, size.height),
+      paint..color = Colors.white.withValues(alpha: 0.05),
+    );
 
     if (state.hasInput) {
       final x = state.x!;
       final y = state.y!;
-      
+
       final radius = math.sqrt(x * x + y * y);
       final maxVal = radius; // Always use radius for scale to fit circles
       final scale = (size.width * 0.4) / (maxVal == 0 ? 1 : maxVal);
@@ -252,7 +263,7 @@ class RotationPainter extends CustomPainter {
       void drawPoint(double px, double py, Color color, String label) {
         final pos = Offset(center.dx + px * scale, center.dy - py * scale);
         canvas.drawCircle(pos, 4, Paint()..color = color);
-        
+
         final tp = TextPainter(
           text: TextSpan(
             text: label,
@@ -266,12 +277,12 @@ class RotationPainter extends CustomPainter {
 
       // Draw dashed orbit
       canvas.drawCircle(
-        center, 
-        radius * scale, 
+        center,
+        radius * scale,
         Paint()
           ..color = Colors.white.withValues(alpha: 0.05)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
+          ..strokeWidth = 1,
       );
 
       // Original
@@ -287,11 +298,23 @@ class RotationPainter extends CustomPainter {
       final linePaint = Paint()
         ..color = Colors.white.withValues(alpha: 0.05)
         ..strokeWidth = 1;
-      
+
       canvas.drawLine(center, Offset(center.dx + x * scale, center.dy - y * scale), linePaint);
-      canvas.drawLine(center, Offset(center.dx + state.rot90CCWX! * scale, center.dy - state.rot90CCWY! * scale), linePaint);
-      canvas.drawLine(center, Offset(center.dx + state.rot180X! * scale, center.dy - state.rot180Y! * scale), linePaint);
-      canvas.drawLine(center, Offset(center.dx + state.rot270CCWX! * scale, center.dy - state.rot270CCWY! * scale), linePaint);
+      canvas.drawLine(
+        center,
+        Offset(center.dx + state.rot90CCWX! * scale, center.dy - state.rot90CCWY! * scale),
+        linePaint,
+      );
+      canvas.drawLine(
+        center,
+        Offset(center.dx + state.rot180X! * scale, center.dy - state.rot180Y! * scale),
+        linePaint,
+      );
+      canvas.drawLine(
+        center,
+        Offset(center.dx + state.rot270CCWX! * scale, center.dy - state.rot270CCWY! * scale),
+        linePaint,
+      );
     }
   }
 

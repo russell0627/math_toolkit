@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../algebra/presentation/algebra_view.dart';
 import '../../app/presentation/widgets/bureau_atmosphere.dart';
+import '../../fraction_simplifier/presentation/fraction_simplifier_view.dart';
 import '../../grid_pythagorean/presentation/grid_pythagorean_view.dart';
 import '../../pythagorean/presentation/pythagorean_view.dart';
 import '../../radical_simplifier/presentation/radical_view.dart';
@@ -273,9 +274,7 @@ class WorkbenchScreen extends ConsumerWidget {
       case UtilityModule.radical:
         return const RadicalView(isCompact: true);
       case UtilityModule.fraction:
-        return const Center(
-          child: Text("FRACTION UNIT OFFLINE", style: TextStyle(color: Colors.white24)),
-        );
+        return const FractionSimplifierView(isCompact: true);
       case UtilityModule.calculator:
         return const MiniCalculatorView();
       case UtilityModule.reflection:

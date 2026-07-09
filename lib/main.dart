@@ -41,7 +41,7 @@ class App extends ConsumerWidget {
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'App Template',
+      title: 'Math Tools',
       theme: themeState.light,
       darkTheme: themeState.dark,
       themeMode: themeState.mode,

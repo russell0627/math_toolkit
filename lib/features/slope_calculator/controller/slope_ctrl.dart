@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+import 'dart:developer' as developer;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:math_expressions/math_expressions.dart';
 import '../../../utils/math_utils.dart';
 import '../model/slope_model.dart';
 
@@ -76,7 +78,7 @@ class SlopeCtrl extends _$SlopeCtrl {
       final dy = p2.y - p1.y;
       final dist = math.sqrt(dx * dx + dy * dy);
       final slp = dx != 0 ? dy / dx : double.infinity;
-      
+
       segmentDists.add(dist);
       segmentRis.add(dy);
       segmentRun.add(dx);
@@ -89,7 +91,7 @@ class SlopeCtrl extends _$SlopeCtrl {
       final minY = points.map((p) => p.y).reduce(math.min);
       final maxY = points.map((p) => p.y).reduce(math.max);
       final totalRise = maxY - minY;
-      
+
       state = state.copyWith(
         points: points,
         slope: double.infinity,
@@ -125,6 +127,18 @@ class SlopeCtrl extends _$SlopeCtrl {
     final equationSlope = m.abs() == m.roundToDouble() ? m.toStringAsFixed(0) : "($mFrac)";
     final equation = 'y = ${equationSlope}x $sign $bStr';
 
+    // Linearity Check: All segment slopes must match the regression slope (m)
+    bool isPerfectlyLinear = true;
+    const tolerance = 1e-10;
+    for (final s in segmentSlp) {
+      if (s == double.infinity) {
+        // Handled in separate branch if all are vertical
+      } else if ((s - m).abs() > tolerance) {
+        isPerfectlyLinear = false;
+        break;
+      }
+    }
+
     state = state.copyWith(
       points: points,
       slope: m,
@@ -139,8 +153,67 @@ class SlopeCtrl extends _$SlopeCtrl {
       segmentSlopes: segmentSlp,
       slopeFraction: mFrac,
       segmentSlopesFractions: segmentSlpFractions,
+      isPerfectlyLinear: isPerfectlyLinear || points.length < 3,
     );
     _auditProportionality();
+  }
+
+  void setEquation(String raw) {
+    if (!raw.contains('=')) return;
+
+    try {
+      final parts = raw.split('=');
+      final yLabel = parts[0].trim();
+      final rhs = parts[1].trim();
+
+      final parser = Parser();
+      final exp = parser.parse(rhs);
+
+      // We'll use a hacky Regex for variable discovery or assume first alpha word that isn't a function
+      final varRegex = RegExp(r'\b([a-zA-Z][a-zA-Z0-9]*)\b');
+      final matches = varRegex.allMatches(rhs).map((m) => m.group(0)!).toList();
+      final functions = {
+        'sin',
+        'cos',
+        'tan',
+        'asin',
+        'acos',
+        'atan',
+        'ln',
+        'log',
+        'sqrt',
+        'abs',
+        'ceil',
+        'floor',
+        'round',
+      };
+      final xLabel = matches.firstWhere((m) => !functions.contains(m), orElse: () => 'x');
+
+      final context = ContextModel();
+
+      double eval(double val) {
+        context.bindVariable(Variable(xLabel), Number(val));
+        return exp.evaluate(EvaluationType.REAL, context) as double;
+      }
+
+      // Generate representative points for the grid/audit
+      final generatedPoints = <SlopePoint>[];
+      for (double x in [-10, -5, 0, 5, 10]) {
+        generatedPoints.add(SlopePoint(x: x, y: eval(x)));
+      }
+
+      state = state.copyWith(
+        points: generatedPoints,
+        xLabel: xLabel,
+        yLabel: yLabel,
+        inputEquation: raw,
+      );
+
+      _calculateSlope();
+    } catch (e, s) {
+      developer.log('Failed to parse equation', name: 'slope.ctrl', error: e, stackTrace: s);
+      // In a real app, we'd propagate this error to the UI
+    }
   }
 
   void _auditProportionality() {
@@ -161,7 +234,7 @@ class SlopeCtrl extends _$SlopeCtrl {
       } else {
         final currentRatio = p.y / p.x;
         ratios.add(currentRatio);
-        
+
         if (k == null) {
           k = currentRatio;
         } else {
@@ -172,7 +245,7 @@ class SlopeCtrl extends _$SlopeCtrl {
       }
     }
 
-    // A single point (0,0) isn't enough to define proportionality for a "relationship" 
+    // A single point (0,0) isn't enough to define proportionality for a "relationship"
     // but the user might expect it to work for even 1 non-zero point.
     // If all points are (0,0), it's technically proportional (k can be anything, but we'll say 0).
     if (k == null && isProportional) k = 0;
@@ -183,5 +256,9 @@ class SlopeCtrl extends _$SlopeCtrl {
       proportionalityFraction: isProportional && k != null ? MathUtils.toFraction(k) : null,
       pointRatios: ratios,
     );
+  }
+
+  void toggleMinimalMode() {
+    state = state.copyWith(isMinimalMode: !state.isMinimalMode);
   }
 }

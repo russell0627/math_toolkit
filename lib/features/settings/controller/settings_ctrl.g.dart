@@ -12,8 +12,7 @@ part of 'settings_ctrl.dart';
 @ProviderFor(SettingsCtrl)
 const settingsCtrlProvider = SettingsCtrlProvider._();
 
-final class SettingsCtrlProvider
-    extends $NotifierProvider<SettingsCtrl, SettingsState> {
+final class SettingsCtrlProvider extends $NotifierProvider<SettingsCtrl, SettingsState> {
   const SettingsCtrlProvider._()
     : super(
         from: null,
@@ -52,12 +51,7 @@ abstract class _$SettingsCtrl extends $Notifier<SettingsState> {
     final ref = this.ref as $Ref<SettingsState, SettingsState>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<SettingsState, SettingsState>,
-              SettingsState,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<SettingsState, SettingsState>, SettingsState, Object?, Object?>;
     element.handleValue(ref, created);
   }
 }

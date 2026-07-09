@@ -40,10 +40,7 @@ class _TactileKeypadButtonState extends State<TactileKeypadButton> {
   @override
   Widget build(BuildContext context) {
     final baseButtonColor =
-        widget.color ??
-        (widget.isAction
-            ? Colors.white.withValues(alpha: 0.3)
-            : Colors.white.withValues(alpha: 0.2));
+        widget.color ?? (widget.isAction ? Colors.white.withValues(alpha: 0.3) : Colors.white.withValues(alpha: 0.2));
 
     final borderColor = widget.color?.withValues(alpha: 0.5) ?? Colors.white24;
 
@@ -139,17 +136,13 @@ class _TactileKeypadButtonState extends State<TactileKeypadButton> {
                 ? Text(
                     widget.label,
                     style: widget.fontStyle.copyWith(
-                      color:
-                          widget.color ??
-                          (widget.isAction ? Colors.white70 : Colors.white),
+                      color: widget.color ?? (widget.isAction ? Colors.white70 : Colors.white),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       shadows: [
                         Shadow(
                           color: Colors.black.withValues(alpha: 0.8),
-                          offset: _isPressed
-                              ? const Offset(0, 0)
-                              : const Offset(0, 1),
+                          offset: _isPressed ? const Offset(0, 0) : const Offset(0, 1),
                           blurRadius: _isPressed ? 2 : 1,
                         ),
                       ],
@@ -170,16 +163,16 @@ class BeepCue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Text(
-        "-click-",
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.6),
-          fontSize: 8,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Courier',
-        ),
-      ),
-    )
+          child: Text(
+            "-click-",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 8,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Courier',
+            ),
+          ),
+        )
         .animate()
         .slideY(begin: 0, end: -2.5, duration: 600.ms, curve: Curves.easeOutCubic)
         .slideX(begin: 0, end: (math.Random().nextDouble() - 0.5) * 2, duration: 600.ms)

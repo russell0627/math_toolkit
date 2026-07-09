@@ -29,6 +29,11 @@ class SlopeState with SlopeStateMappable {
   final double? proportionalityConstant;
   final String? proportionalityFraction;
   final List<double?> pointRatios;
+  final String xLabel;
+  final String yLabel;
+  final String? inputEquation;
+  final bool isMinimalMode;
+  final bool isPerfectlyLinear;
 
   const SlopeState({
     this.points = const [],
@@ -48,5 +53,10 @@ class SlopeState with SlopeStateMappable {
     this.proportionalityConstant,
     this.proportionalityFraction,
     this.pointRatios = const [],
+    this.xLabel = "X",
+    this.yLabel = "Y",
+    this.inputEquation,
+    this.isMinimalMode = false,
+    this.isPerfectlyLinear = true,
   });
 }

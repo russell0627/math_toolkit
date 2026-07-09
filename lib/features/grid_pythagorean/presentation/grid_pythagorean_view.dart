@@ -255,7 +255,11 @@ class _GridPythagoreanViewState extends ConsumerState<GridPythagoreanView> {
   }
 
   Widget _buildCoordInput(
-      String label, TextEditingController controller, FocusNode focusNode, Function(String) onChanged) {
+    String label,
+    TextEditingController controller,
+    FocusNode focusNode,
+    Function(String) onChanged,
+  ) {
     return Row(
       children: [
         SizedBox(

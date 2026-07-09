@@ -22,7 +22,7 @@ class ThemeService extends _$ThemeService {
   /// Use this to customize the color scheme.
   ThemeData _modTheme(ThemeData data) {
     final textTheme = _buildTextTheme(data.textTheme);
-  
+
     return data.copyWith(
       // filledButtonTheme: FilledButtonThemeData(
       //   style: FilledButton.styleFrom(

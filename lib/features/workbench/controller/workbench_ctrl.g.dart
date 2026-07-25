@@ -12,7 +12,8 @@ part of 'workbench_ctrl.dart';
 @ProviderFor(WorkbenchCtrl)
 const workbenchCtrlProvider = WorkbenchCtrlProvider._();
 
-final class WorkbenchCtrlProvider extends $NotifierProvider<WorkbenchCtrl, WorkbenchState> {
+final class WorkbenchCtrlProvider
+    extends $NotifierProvider<WorkbenchCtrl, WorkbenchState> {
   const WorkbenchCtrlProvider._()
     : super(
         from: null,
@@ -51,7 +52,12 @@ abstract class _$WorkbenchCtrl extends $Notifier<WorkbenchState> {
     final ref = this.ref as $Ref<WorkbenchState, WorkbenchState>;
     final element =
         ref.element
-            as $ClassProviderElement<AnyNotifier<WorkbenchState, WorkbenchState>, WorkbenchState, Object?, Object?>;
+            as $ClassProviderElement<
+              AnyNotifier<WorkbenchState, WorkbenchState>,
+              WorkbenchState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

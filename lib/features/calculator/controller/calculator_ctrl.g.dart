@@ -12,7 +12,8 @@ part of 'calculator_ctrl.dart';
 @ProviderFor(CalculatorCtrl)
 const calculatorCtrlProvider = CalculatorCtrlProvider._();
 
-final class CalculatorCtrlProvider extends $NotifierProvider<CalculatorCtrl, CalculatorState> {
+final class CalculatorCtrlProvider
+    extends $NotifierProvider<CalculatorCtrl, CalculatorState> {
   const CalculatorCtrlProvider._()
     : super(
         from: null,
@@ -51,7 +52,12 @@ abstract class _$CalculatorCtrl extends $Notifier<CalculatorState> {
     final ref = this.ref as $Ref<CalculatorState, CalculatorState>;
     final element =
         ref.element
-            as $ClassProviderElement<AnyNotifier<CalculatorState, CalculatorState>, CalculatorState, Object?, Object?>;
+            as $ClassProviderElement<
+              AnyNotifier<CalculatorState, CalculatorState>,
+              CalculatorState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

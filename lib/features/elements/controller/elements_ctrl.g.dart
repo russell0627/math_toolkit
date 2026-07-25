@@ -12,7 +12,8 @@ part of 'elements_ctrl.dart';
 @ProviderFor(ElementsCtrl)
 const elementsCtrlProvider = ElementsCtrlProvider._();
 
-final class ElementsCtrlProvider extends $NotifierProvider<ElementsCtrl, ElementsState> {
+final class ElementsCtrlProvider
+    extends $NotifierProvider<ElementsCtrl, ElementsState> {
   const ElementsCtrlProvider._()
     : super(
         from: null,
@@ -51,7 +52,12 @@ abstract class _$ElementsCtrl extends $Notifier<ElementsState> {
     final ref = this.ref as $Ref<ElementsState, ElementsState>;
     final element =
         ref.element
-            as $ClassProviderElement<AnyNotifier<ElementsState, ElementsState>, ElementsState, Object?, Object?>;
+            as $ClassProviderElement<
+              AnyNotifier<ElementsState, ElementsState>,
+              ElementsState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

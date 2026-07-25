@@ -27,6 +27,14 @@ enum MainModule {
   slopeAudit(
     thematicTitle: 'SLOPE AUDIT (SLP-01)',
     normalTitle: 'SLOPE CALCULATOR',
+  ),
+  acceleration(
+    thematicTitle: 'VELOCITY FLUX AUDITOR (ACC-01)',
+    normalTitle: 'ACCELERATION CALCULATOR',
+  ),
+  efficiency(
+    thematicTitle: 'THERMODYNAMIC AUDITOR (EFF-01)',
+    normalTitle: 'EFFICIENCY CALCULATOR',
   )
   ;
 

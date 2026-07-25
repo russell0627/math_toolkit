@@ -12,7 +12,8 @@ part of 'budgetary_audit_ctrl.dart';
 @ProviderFor(BudgetaryAuditCtrl)
 const budgetaryAuditCtrlProvider = BudgetaryAuditCtrlProvider._();
 
-final class BudgetaryAuditCtrlProvider extends $NotifierProvider<BudgetaryAuditCtrl, AuditState> {
+final class BudgetaryAuditCtrlProvider
+    extends $NotifierProvider<BudgetaryAuditCtrl, AuditState> {
   const BudgetaryAuditCtrlProvider._()
     : super(
         from: null,
@@ -40,7 +41,8 @@ final class BudgetaryAuditCtrlProvider extends $NotifierProvider<BudgetaryAuditC
   }
 }
 
-String _$budgetaryAuditCtrlHash() => r'9821784399e6da837707aedafefc5d3f6f1bfe6c';
+String _$budgetaryAuditCtrlHash() =>
+    r'9821784399e6da837707aedafefc5d3f6f1bfe6c';
 
 abstract class _$BudgetaryAuditCtrl extends $Notifier<AuditState> {
   AuditState build();
@@ -50,7 +52,13 @@ abstract class _$BudgetaryAuditCtrl extends $Notifier<AuditState> {
     final created = build();
     final ref = this.ref as $Ref<AuditState, AuditState>;
     final element =
-        ref.element as $ClassProviderElement<AnyNotifier<AuditState, AuditState>, AuditState, Object?, Object?>;
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AuditState, AuditState>,
+              AuditState,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

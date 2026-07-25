@@ -20,6 +20,8 @@ import 'features/radical_simplifier/presentation/radical_screen.dart';
 import 'features/synchronizer/presentation/synchronizer_screen.dart';
 import 'features/triangle_solver/presentation/triangle_solver_screen.dart';
 import 'features/workbench/presentation/workbench_screen.dart';
+import 'features/acceleration_calculator/presentation/acceleration_screen.dart';
+import 'features/efficiency_calculator/presentation/efficiency_screen.dart';
 
 part 'routes.g.dart';
 
@@ -40,7 +42,9 @@ enum AppRoute {
   triangleSolver('/triangle-solver'),
   pythagorean('/pythagorean'),
   radicalSimplifier('/radical-simplifier'),
-  workbench('/workbench')
+  workbench('/workbench'),
+  acceleration('/acceleration'),
+  efficiency('/efficiency')
   ;
 
   final String? _path;
@@ -142,6 +146,16 @@ GoRouter goRouter(Ref ref) {
             name: AppRoute.workbench.name,
             path: AppRoute.workbench.path,
             builder: (context, state) => const WorkbenchScreen(),
+          ),
+          GoRoute(
+            name: AppRoute.acceleration.name,
+            path: AppRoute.acceleration.path,
+            builder: (context, state) => const AccelerationScreen(),
+          ),
+          GoRoute(
+            name: AppRoute.efficiency.name,
+            path: AppRoute.efficiency.path,
+            builder: (context, state) => const EfficiencyScreen(),
           ),
         ],
       ),

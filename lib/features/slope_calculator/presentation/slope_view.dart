@@ -21,6 +21,20 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
   final FocusNode _yFocus = FocusNode();
   final FocusNode _eqFocus = FocusNode();
 
+  // Line 2 Intersection fields
+  final TextEditingController _secondSlopeController = TextEditingController();
+  final TextEditingController _secondInterceptController = TextEditingController();
+  final TextEditingController _secondEqController = TextEditingController();
+  final FocusNode _secondSlopeFocus = FocusNode();
+  final FocusNode _secondInterceptFocus = FocusNode();
+  final FocusNode _secondEqFocus = FocusNode();
+
+  // Point Verification fields
+  final TextEditingController _checkXController = TextEditingController();
+  final TextEditingController _checkYController = TextEditingController();
+  final FocusNode _checkXFocus = FocusNode();
+  final FocusNode _checkYFocus = FocusNode();
+
   Offset? _hoverOffset;
   int _activeTabIndex = 0;
 
@@ -44,6 +58,15 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
     }
   }
 
+  void _applyCheckPoint() {
+    final x = double.tryParse(_checkXController.text);
+    final y = double.tryParse(_checkYController.text);
+    if (x != null && y != null) {
+      ref.read(slopeCtrlProvider.notifier).setCheckPoint(x, y);
+      _checkYFocus.unfocus();
+    }
+  }
+
   @override
   void dispose() {
     _xController.dispose();
@@ -52,6 +75,16 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
     _xFocus.dispose();
     _yFocus.dispose();
     _eqFocus.dispose();
+    _secondSlopeController.dispose();
+    _secondInterceptController.dispose();
+    _secondEqController.dispose();
+    _secondSlopeFocus.dispose();
+    _secondInterceptFocus.dispose();
+    _secondEqFocus.dispose();
+    _checkXController.dispose();
+    _checkYController.dispose();
+    _checkXFocus.dispose();
+    _checkYFocus.dispose();
     super.dispose();
   }
 
@@ -194,6 +227,7 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
   }
 
   Widget _buildInputSection(SlopeState state) {
+    final ctrl = ref.read(slopeCtrlProvider.notifier);
     return Column(
       children: [
         Container(
@@ -306,6 +340,12 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
             ],
           ),
         ),
+        if (state.slope != null || state.equation != null) ...[
+          const SizedBox(height: 16),
+          _buildIntersectionSection(state, ctrl),
+          const SizedBox(height: 16),
+          _buildCheckPointSection(state, ctrl),
+        ],
       ],
     );
   }
@@ -692,6 +732,360 @@ class _SlopeCalculatorViewState extends ConsumerState<SlopeCalculatorView> {
       ],
     );
   }
+
+  InputDecoration _cyanInputDecoration(String hint) {
+    return InputDecoration(
+      isDense: true,
+      hintText: hint,
+      hintStyle: GoogleFonts.shareTechMono(color: Colors.white10),
+      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.cyanAccent)),
+    );
+  }
+
+  Widget _buildIntersectionSection(SlopeState state, SlopeCtrl ctrl) {
+    if (state.slope == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 32),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.cyanAccent.withValues(alpha: 0.02),
+        border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.1)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "LINE INTERSECTION PROTOCOL",
+            style: GoogleFonts.shareTechMono(color: Colors.cyanAccent.withValues(alpha: 0.4), fontSize: 10),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _secondSlopeController,
+                  focusNode: _secondSlopeFocus,
+                  style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 18),
+                  decoration: _cyanInputDecoration("Second Slope (m2)"),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextField(
+                  controller: _secondInterceptController,
+                  focusNode: _secondInterceptFocus,
+                  style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 18),
+                  decoration: _cyanInputDecoration("Second Intercept (b2)"),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () {
+                  final m = double.tryParse(_secondSlopeController.text);
+                  final b = double.tryParse(_secondInterceptController.text);
+                  if (m != null && b != null) {
+                    ctrl.setSecondLine(m, b);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyanAccent.withValues(alpha: 0.1),
+                  foregroundColor: Colors.cyanAccent,
+                  side: const BorderSide(color: Colors.cyanAccent, width: 0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text("CALC", style: GoogleFonts.shareTechMono(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _secondEqController,
+                  focusNode: _secondEqFocus,
+                  style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 18),
+                  decoration: _cyanInputDecoration("Or enter equation: e.g. y = -x + 4"),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (_secondEqController.text.isNotEmpty) {
+                    ctrl.setSecondLineFromEquation(_secondEqController.text);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyanAccent.withValues(alpha: 0.1),
+                  foregroundColor: Colors.cyanAccent,
+                  side: const BorderSide(color: Colors.cyanAccent, width: 0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text("APPLY", style: GoogleFonts.shareTechMono(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          if (state.secondSlope != null) ...[
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "LINE 2: ${state.secondEquation ?? ''}",
+                  style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 14),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _secondSlopeController.clear();
+                    _secondInterceptController.clear();
+                    _secondEqController.clear();
+                    ctrl.clearSecondLine();
+                  },
+                  child: Text("DISCONNECT", style: GoogleFonts.shareTechMono(color: Colors.redAccent, fontSize: 10)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                border: Border.all(color: Colors.white10),
+              ),
+              width: double.infinity,
+              alignment: Alignment.center,
+              child: Text(
+                state.intersectionStatus == "INTERSECTING"
+                    ? "INTERSECTION (REGRESSION): (${state.intersectionPoint!.x.toStringAsFixed(4)}, ${state.intersectionPoint!.y.toStringAsFixed(4)})"
+                    : state.intersectionStatus == "IDENTICAL"
+                        ? "LINES ARE IDENTICAL (INFINITE INTERSECTIONS)"
+                        : "LINES ARE PARALLEL (NO INTERSECTION)",
+                style: GoogleFonts.shareTechMono(
+                  color: state.intersectionStatus == "INTERSECTING" ? Colors.cyanAccent : Colors.redAccent,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (state.segmentIntersections.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                "SEGMENT INTERSECTIONS (${state.segmentIntersections.length}):",
+                style: GoogleFonts.shareTechMono(color: Colors.cyanAccent.withValues(alpha: 0.5), fontSize: 10),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 120),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: state.segmentIntersections.length,
+                  itemBuilder: (context, idx) {
+                    final pt = state.segmentIntersections[idx];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        "SEGMENT POINT ${idx + 1}: (${pt.x.toStringAsFixed(4)}, ${pt.y.toStringAsFixed(4)})",
+                        style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 13),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  bool _isPointOnRegression(SlopeState state, SlopePoint pt) {
+    final m = state.slope;
+    final b = state.yIntercept;
+    if (m == null) return false;
+    if (m == double.infinity) {
+      final x1 = state.points[0].x;
+      return (pt.x - x1).abs() < 1e-9;
+    }
+    if (b == null) return false;
+    return (pt.y - (m * pt.x + b)).abs() < 1e-9;
+  }
+
+  bool _isPointOnSegments(SlopeState state, SlopePoint pt) {
+    final pts = state.points;
+    if (pts.length < 2) return false;
+    for (int i = 0; i < pts.length - 1; i++) {
+      final pA = pts[i];
+      final pB = pts[i + 1];
+
+      final ap = math.sqrt(math.pow(pt.x - pA.x, 2) + math.pow(pt.y - pA.y, 2));
+      final pb = math.sqrt(math.pow(pt.x - pB.x, 2) + math.pow(pt.y - pB.y, 2));
+      final ab = math.sqrt(math.pow(pB.x - pA.x, 2) + math.pow(pB.y - pA.y, 2));
+
+      if ((ap + pb - ab).abs() < 1e-9) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isPointOnSecondLine(SlopeState state, SlopePoint pt) {
+    final m = state.secondSlope;
+    final b = state.secondYIntercept;
+    if (m == null || b == null) return false;
+    if (m == double.infinity) {
+      return (pt.x - b).abs() < 1e-9;
+    }
+    return (pt.y - (m * pt.x + b)).abs() < 1e-9;
+  }
+
+  InputDecoration _greenInputDecoration(String hint) {
+    return InputDecoration(
+      isDense: true,
+      hintText: hint,
+      hintStyle: GoogleFonts.shareTechMono(color: Colors.white10),
+      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
+      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.greenAccent)),
+    );
+  }
+
+  Widget _buildCheckPointSection(SlopeState state, SlopeCtrl ctrl) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.greenAccent.withValues(alpha: 0.02),
+        border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.1)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "POINT VERIFICATION PROTOCOL",
+            style: GoogleFonts.shareTechMono(color: Colors.greenAccent.withValues(alpha: 0.4), fontSize: 10),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _checkXController,
+                  focusNode: _checkXFocus,
+                  textInputAction: TextInputAction.next,
+                  style: GoogleFonts.shareTechMono(color: Colors.greenAccent, fontSize: 18),
+                  decoration: _greenInputDecoration("Test Point X"),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  onSubmitted: (_) => _checkYFocus.requestFocus(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextField(
+                  controller: _checkYController,
+                  focusNode: _checkYFocus,
+                  textInputAction: TextInputAction.done,
+                  style: GoogleFonts.shareTechMono(color: Colors.greenAccent, fontSize: 18),
+                  decoration: _greenInputDecoration("Test Point Y"),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                  onSubmitted: (_) => _applyCheckPoint(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton(
+                onPressed: _applyCheckPoint,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.greenAccent.withValues(alpha: 0.1),
+                  foregroundColor: Colors.greenAccent,
+                  side: const BorderSide(color: Colors.greenAccent, width: 0.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: Text("AUDIT", style: GoogleFonts.shareTechMono(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          if (state.checkPoint != null) ...[
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "TESTING POINT: (${state.checkPoint!.x.toStringAsFixed(4)}, ${state.checkPoint!.y.toStringAsFixed(4)})",
+                  style: GoogleFonts.shareTechMono(color: Colors.greenAccent, fontSize: 14),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _checkXController.clear();
+                    _checkYController.clear();
+                    ctrl.clearCheckPoint();
+                  },
+                  child: Text("RESET", style: GoogleFonts.shareTechMono(color: Colors.redAccent, fontSize: 10)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCheckResultRow(
+              "Line 1 (Regression)",
+              _isPointOnRegression(state, state.checkPoint!),
+            ),
+            const SizedBox(height: 8),
+            _buildCheckResultRow(
+              "Line 1 (Segments)",
+              _isPointOnSegments(state, state.checkPoint!),
+            ),
+            if (state.secondSlope != null) ...[
+              const SizedBox(height: 8),
+              _buildCheckResultRow(
+                "Line 2 (Secondary)",
+                _isPointOnSecondLine(state, state.checkPoint!),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckResultRow(String label, bool isOn) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.shareTechMono(color: Colors.white60, fontSize: 13),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isOn
+                ? Colors.greenAccent.withValues(alpha: 0.1)
+                : Colors.redAccent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Text(
+            isOn ? "ON LINE" : "NOT ON LINE",
+            style: GoogleFonts.shareTechMono(
+              color: isOn ? Colors.greenAccent : Colors.redAccent,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class SlopeGridPainter extends CustomPainter {
@@ -738,6 +1132,26 @@ class SlopeGridPainter extends CustomPainter {
         final maxX_ = allX.reduce(math.max);
         allY.add(state.slope! * minX_ + state.yIntercept!);
         allY.add(state.slope! * maxX_ + state.yIntercept!);
+      }
+
+      // Consider intersection point for the viewport scaling
+      if (state.secondSlope != null && state.intersectionPoint != null && state.intersectionStatus == "INTERSECTING") {
+        allX.add(state.intersectionPoint!.x);
+        allY.add(state.intersectionPoint!.y);
+      }
+
+      // Consider segment intersection points for viewport scaling
+      if (state.secondSlope != null && state.segmentIntersections.isNotEmpty) {
+        for (final p in state.segmentIntersections) {
+          allX.add(p.x);
+          allY.add(p.y);
+        }
+      }
+
+      // Consider test checkPoint for viewport scaling
+      if (state.checkPoint != null) {
+        allX.add(state.checkPoint!.x);
+        allY.add(state.checkPoint!.y);
       }
 
       final minX = allX.reduce(math.min);
@@ -868,6 +1282,108 @@ class SlopeGridPainter extends CustomPainter {
               );
             }
           }
+        }
+      }
+
+      // Draw Second Line
+      if (state.secondSlope != null && state.secondYIntercept != null) {
+        final linePaint = Paint()
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke
+          ..color = Colors.cyanAccent.withValues(alpha: 0.4);
+
+        if (state.secondSlope == double.infinity) {
+          final x = state.secondYIntercept!;
+          final pStart = Offset(map(x, 0).dx, 0);
+          final pEnd = Offset(map(x, 0).dx, size.height);
+          canvas.drawLine(pStart, pEnd, linePaint);
+        } else {
+          final x1 = minX - 1;
+          final x2 = maxX + 1;
+          final y1 = state.secondSlope! * x1 + state.secondYIntercept!;
+          final y2 = state.secondSlope! * x2 + state.secondYIntercept!;
+
+          final p1 = map(x1, y1);
+          final p2 = map(x2, y2);
+
+          canvas.drawLine(p1, p2, linePaint);
+        }
+      }
+
+      // Draw Intersection Point
+      if (state.secondSlope != null && state.intersectionStatus == "INTERSECTING" && state.intersectionPoint != null) {
+        final ip = state.intersectionPoint!;
+        final pos = map(ip.x, ip.y);
+
+        canvas.drawCircle(
+          pos,
+          6,
+          Paint()
+            ..color = Colors.cyanAccent
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5,
+        );
+        canvas.drawCircle(pos, 2.5, Paint()..color = Colors.cyanAccent);
+
+        if (!isMinimal) {
+          _drawLabel(canvas, "REG INT: (${ip.x.toStringAsFixed(2)}, ${ip.y.toStringAsFixed(2)})", pos, Colors.cyanAccent);
+        }
+      }
+
+      // Draw Segment Intersection Points
+      if (state.secondSlope != null && state.segmentIntersections.isNotEmpty) {
+        for (final sip in state.segmentIntersections) {
+          final pos = map(sip.x, sip.y);
+
+          canvas.drawCircle(
+            pos,
+            8,
+            Paint()
+              ..color = Colors.cyanAccent.withValues(alpha: 0.7)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.0,
+          );
+          canvas.drawCircle(pos, 2.0, Paint()..color = Colors.cyanAccent.withValues(alpha: 0.8));
+
+          if (!isMinimal) {
+            _drawLabel(
+              canvas,
+              "SEG INT: (${sip.x.toStringAsFixed(2)}, ${sip.y.toStringAsFixed(2)})",
+              pos.translate(0, -12),
+              Colors.cyanAccent.withValues(alpha: 0.6),
+            );
+          }
+        }
+      }
+
+      // Draw Test Check Point
+      if (state.checkPoint != null) {
+        final cp = state.checkPoint!;
+        final pos = map(cp.x, cp.y);
+
+        canvas.drawCircle(
+          pos,
+          6,
+          Paint()
+            ..color = Colors.greenAccent
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5,
+        );
+        canvas.drawCircle(pos, 2.0, Paint()..color = Colors.greenAccent);
+
+        final crossPaint = Paint()
+          ..color = Colors.greenAccent.withValues(alpha: 0.5)
+          ..strokeWidth = 0.5;
+        canvas.drawLine(pos - const Offset(12, 0), pos + const Offset(12, 0), crossPaint);
+        canvas.drawLine(pos - const Offset(0, 12), pos + const Offset(0, 12), crossPaint);
+
+        if (!isMinimal) {
+          _drawLabel(
+            canvas,
+            "TEST: (${cp.x.toStringAsFixed(2)}, ${cp.y.toStringAsFixed(2)})",
+            pos.translate(12, 12),
+            Colors.greenAccent,
+          );
         }
       }
 

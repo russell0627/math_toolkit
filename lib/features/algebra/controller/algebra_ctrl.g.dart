@@ -41,7 +41,7 @@ final class AlgebraCtrlProvider
   }
 }
 
-String _$algebraCtrlHash() => r'77a82a797a12c64ea17056eadbe650f01eea52aa';
+String _$algebraCtrlHash() => r'f0744ed0a7f436fdd11ab1ce2d6f8ea55a66e9bd';
 
 abstract class _$AlgebraCtrl extends $Notifier<AlgebraState> {
   AlgebraState build();

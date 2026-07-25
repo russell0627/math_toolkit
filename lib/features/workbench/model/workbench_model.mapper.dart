@@ -39,6 +39,10 @@ class MainModuleMapper extends EnumMapper<MainModule> {
         return MainModule.transformationSequence;
       case r'slopeAudit':
         return MainModule.slopeAudit;
+      case r'acceleration':
+        return MainModule.acceleration;
+      case r'efficiency':
+        return MainModule.efficiency;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -59,6 +63,10 @@ class MainModuleMapper extends EnumMapper<MainModule> {
         return r'transformationSequence';
       case MainModule.slopeAudit:
         return r'slopeAudit';
+      case MainModule.acceleration:
+        return r'acceleration';
+      case MainModule.efficiency:
+        return r'efficiency';
     }
   }
 }

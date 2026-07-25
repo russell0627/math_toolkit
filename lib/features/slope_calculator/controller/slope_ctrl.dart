@@ -107,6 +107,9 @@ class SlopeCtrl extends _$SlopeCtrl {
         slopeFraction: "∞",
         segmentSlopesFractions: segmentSlpFractions,
       );
+      if (state.secondSlope != null) {
+        _calculateIntersection();
+      }
       return;
     }
 
@@ -156,6 +159,9 @@ class SlopeCtrl extends _$SlopeCtrl {
       isPerfectlyLinear: isPerfectlyLinear || points.length < 3,
     );
     _auditProportionality();
+    if (state.secondSlope != null) {
+      _calculateIntersection();
+    }
   }
 
   void setEquation(String raw) {
@@ -166,12 +172,13 @@ class SlopeCtrl extends _$SlopeCtrl {
       final yLabel = parts[0].trim();
       final rhs = parts[1].trim();
 
+      final normRhs = _normalize(rhs);
       final parser = Parser();
-      final exp = parser.parse(rhs);
+      final exp = parser.parse(normRhs);
 
       // We'll use a hacky Regex for variable discovery or assume first alpha word that isn't a function
       final varRegex = RegExp(r'\b([a-zA-Z][a-zA-Z0-9]*)\b');
-      final matches = varRegex.allMatches(rhs).map((m) => m.group(0)!).toList();
+      final matches = varRegex.allMatches(normRhs).map((m) => m.group(0)!).toList();
       final functions = {
         'sin',
         'cos',
@@ -260,5 +267,196 @@ class SlopeCtrl extends _$SlopeCtrl {
 
   void toggleMinimalMode() {
     state = state.copyWith(isMinimalMode: !state.isMinimalMode);
+  }
+
+  void setSecondLine(double slope, double intercept) {
+    state = state.copyWith(
+      secondSlope: slope,
+      secondYIntercept: intercept,
+      secondEquation: slope == double.infinity
+          ? 'x = ${intercept.toStringAsFixed(2)}'
+          : 'y = ${slope.abs() == slope.roundToDouble() ? slope.toStringAsFixed(0) : "(${MathUtils.toFraction(slope)})"}x ${intercept >= 0 ? '+' : '-'} ${intercept.abs().toStringAsFixed(2)}',
+    );
+    _calculateIntersection();
+  }
+
+  void setSecondLineFromEquation(String raw) {
+    if (!raw.contains('=')) return;
+
+    try {
+      final parts = raw.split('=');
+      final lhs = parts[0].trim();
+      final rhs = parts[1].trim();
+
+      if (lhs == 'x') {
+        final k = double.tryParse(rhs);
+        if (k != null) {
+          setSecondLine(double.infinity, k);
+        }
+        return;
+      }
+
+      final normRhs = _normalize(rhs);
+      final parser = Parser();
+      final exp = parser.parse(normRhs);
+
+      final varRegex = RegExp(r'\b([a-zA-Z][a-zA-Z0-9]*)\b');
+      final matches = varRegex.allMatches(normRhs).map((m) => m.group(0)!).toList();
+      final functions = {
+        'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'ln', 'log', 'sqrt', 'abs', 'ceil', 'floor', 'round'
+      };
+      final xLabel = matches.firstWhere((m) => !functions.contains(m), orElse: () => 'x');
+
+      final context = ContextModel();
+
+      double eval(double val) {
+        context.bindVariable(Variable(xLabel), Number(val));
+        return exp.evaluate(EvaluationType.REAL, context) as double;
+      }
+
+      final b = eval(0);
+      final m = eval(1) - b;
+
+      setSecondLine(m, b);
+    } catch (e, s) {
+      developer.log('Failed to parse Line 2 equation', name: 'slope.ctrl', error: e, stackTrace: s);
+    }
+  }
+
+  void clearSecondLine() {
+    state = state.copyWith(
+      secondSlope: null,
+      secondYIntercept: null,
+      secondEquation: null,
+      intersectionPoint: null,
+      intersectionStatus: null,
+      segmentIntersections: const [],
+    );
+  }
+
+  void _calculateIntersection() {
+    final m1 = state.slope;
+    final b1 = state.yIntercept;
+    final m2 = state.secondSlope;
+    final b2 = state.secondYIntercept;
+
+    if (m1 == null || m2 == null) return;
+
+    // 1. Calculate regression line intersection
+    SlopePoint? regPt;
+    String status = "INTERSECTING";
+
+    if (m1 == double.infinity) {
+      final x1 = state.points[0].x;
+      if (m2 == double.infinity) {
+        final x2 = b2!;
+        if ((x1 - x2).abs() < 1e-10) {
+          status = "IDENTICAL";
+        } else {
+          status = "PARALLEL";
+        }
+      } else {
+        final y = m2 * x1 + b2!;
+        regPt = SlopePoint(x: x1, y: y);
+      }
+    } else if (m2 == double.infinity) {
+      final x2 = b2!;
+      final y = m1 * x2 + b1!;
+      regPt = SlopePoint(x: x2, y: y);
+    } else {
+      if ((m1 - m2).abs() < 1e-10) {
+        if ((b1! - b2!).abs() < 1e-10) {
+          status = "IDENTICAL";
+        } else {
+          status = "PARALLEL";
+        }
+      } else {
+        final x = (b2! - b1!) / (m1 - m2);
+        final y = m1 * x + b1;
+        regPt = SlopePoint(x: x, y: y);
+      }
+    }
+
+    // 2. Calculate segment intersections
+    final segPts = <SlopePoint>[];
+    final pts = state.points;
+    if (pts.length > 1) {
+      for (int i = 0; i < pts.length - 1; i++) {
+        final pA = pts[i];
+        final pB = pts[i + 1];
+
+        final dx = pB.x - pA.x;
+        final dy = pB.y - pA.y;
+
+        SlopePoint? sect;
+        if (dx.abs() < 1e-10) {
+          // Vertical segment: x = pA.x
+          final xSeg = pA.x;
+          if (m2 == double.infinity) {
+            // Both are vertical - no single intersection point
+          } else {
+            final ySect = m2 * xSeg + b2;
+            sect = SlopePoint(x: xSeg, y: ySect);
+          }
+        } else {
+          final mSeg = dy / dx;
+          final bSeg = pA.y - mSeg * pA.x;
+
+          if (m2 == double.infinity) {
+            final xSeg = b2;
+            final ySect = mSeg * xSeg + bSeg;
+            sect = SlopePoint(x: xSeg, y: ySect);
+          } else {
+            if ((mSeg - m2).abs() > 1e-10) {
+              final xSect = (b2 - bSeg) / (mSeg - m2);
+              final ySect = mSeg * xSect + bSeg;
+              sect = SlopePoint(x: xSect, y: ySect);
+            }
+          }
+        }
+
+        if (sect != null) {
+          final minX = math.min(pA.x, pB.x) - 1e-9;
+          final maxX = math.max(pA.x, pB.x) + 1e-9;
+          final minY = math.min(pA.y, pB.y) - 1e-9;
+          final maxY = math.max(pA.y, pB.y) + 1e-9;
+
+          if (sect.x >= minX && sect.x <= maxX && sect.y >= minY && sect.y <= maxY) {
+            final isDuplicate = segPts.any((p) => (p.x - sect!.x).abs() < 1e-9 && (p.y - sect.y).abs() < 1e-9);
+            if (!isDuplicate) {
+              segPts.add(sect);
+            }
+          }
+        }
+      }
+    }
+
+    state = state.copyWith(
+      intersectionStatus: status,
+      intersectionPoint: regPt,
+      segmentIntersections: segPts,
+    );
+  }
+
+  void setCheckPoint(double x, double y) {
+    state = state.copyWith(checkPoint: SlopePoint(x: x, y: y));
+  }
+
+  void clearCheckPoint() {
+    state = state.copyWith(checkPoint: null);
+  }
+
+  String _normalize(String input) {
+    var s = input.replaceAll(' ', '').replaceAll(',', '.');
+    s = s.replaceAllMapped(RegExp(r'(^|[^0-9])\.(\d)'), (m) => '${m[1]}0.${m[2]}');
+    s = s.replaceAllMapped(RegExp(r'(\d+\.?\d*)([a-zA-Z])'), (m) => '${m[1]}*${m[2]}');
+    s = s.replaceAllMapped(RegExp(r'([a-zA-Z])(\d)'), (m) => '${m[1]}*${m[2]}');
+    s = s.replaceAllMapped(RegExp(r'([a-zA-Z])([a-zA-Z])'), (m) => '${m[1]}*${m[2]}');
+    s = s.replaceAllMapped(RegExp(r'(\d+\.?\d*)\('), (m) => '${m[1]}*(');
+    s = s.replaceAllMapped(RegExp(r'([a-zA-Z])\('), (m) => '${m[1]}*(');
+    s = s.replaceAllMapped(RegExp(r'\)([a-zA-Z])'), (m) => ')*${m[1]}');
+    s = s.replaceAllMapped(RegExp(r'\)(\d)'), (m) => ')*${m[1]}');
+    s = s.replaceAllMapped(RegExp(r'\)\('), (m) => ')*(');
+    return s;
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../utils/popup_utils.dart';
 import '../../../app/presentation/widgets/bureau_balance_scale.dart';
 import '../../../app/presentation/widgets/bureau_complexity_gauge.dart';
 import '../../../app/presentation/widgets/bureau_rotary_selector.dart';
@@ -75,6 +76,12 @@ class _AlgebraAuditoriumState extends ConsumerState<AlgebraAuditorium> with Tick
   Widget build(BuildContext context) {
     final state = ref.watch(algebraCtrlProvider);
     final ctrl = ref.read(algebraCtrlProvider.notifier);
+
+    ref.listen<AlgebraState>(algebraCtrlProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        showErrorToast(next.error!);
+      }
+    });
 
     return Stack(
       children: [
@@ -578,6 +585,8 @@ class _AlgebraAuditoriumState extends ConsumerState<AlgebraAuditorium> with Tick
             ],
             _UnsanctionedSolveButton(onPressed: () => ctrl.solve()),
             const SizedBox(height: 12),
+            _VerifyCandidatesButton(onPressed: () => _showVerifyCandidatesDialog(context, ctrl)),
+            const SizedBox(height: 12),
             _SymbolicActionButton(
               label: "EXECUTE CROSS-MULTIPLICATION PROTOCOL",
               icon: Icons.unfold_more,
@@ -854,6 +863,153 @@ class _AlgebraAuditoriumState extends ConsumerState<AlgebraAuditorium> with Tick
       trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white12, size: 12),
     );
   }
+
+  void _showVerifyCandidatesDialog(BuildContext context, AlgebraCtrl ctrl) {
+    final controller = TextEditingController();
+    final List<String> candidatesList = [];
+
+    SmartDialog.show(
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              width: 340,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                border: Border.all(color: Colors.white10),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "VERIFY CANDIDATES",
+                    style: GoogleFonts.ebGaramond(color: Colors.cyanAccent, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "BUILD SOLUTION CANDIDATES LIST",
+                    style: GoogleFonts.shareTechMono(color: Colors.white24, fontSize: 8),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          style: GoogleFonts.shareTechMono(color: Colors.cyanAccent),
+                          decoration: InputDecoration(
+                            hintText: "e.g. x=2, y=8 or 5",
+                            border: const OutlineInputBorder(),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          onSubmitted: (val) {
+                            if (val.trim().isNotEmpty) {
+                              setState(() {
+                                candidatesList.add(val.trim());
+                                controller.clear();
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (controller.text.trim().isNotEmpty) {
+                            setState(() {
+                              candidatesList.add(controller.text.trim());
+                              controller.clear();
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.cyanAccent.withValues(alpha: 0.1),
+                          foregroundColor: Colors.cyanAccent,
+                          side: const BorderSide(color: Colors.cyanAccent),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        ),
+                        child: const Text("ADD"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (candidatesList.isNotEmpty) ...[
+                    Text(
+                      "CANDIDATES TO TEST:",
+                      style: GoogleFonts.shareTechMono(color: Colors.white60, fontSize: 9),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 120),
+                      decoration: BoxDecoration(
+                        color: Colors.black26,
+                        border: Border.all(color: Colors.white12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: candidatesList.length,
+                        itemBuilder: (context, idx) {
+                          final item = candidatesList[idx];
+                          return ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            title: Text(
+                              item,
+                              style: GoogleFonts.shareTechMono(color: Colors.cyanAccent, fontSize: 12),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.close, size: 14, color: Colors.redAccent),
+                              onPressed: () {
+                                setState(() {
+                                  candidatesList.removeAt(idx);
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => SmartDialog.dismiss(),
+                        child: Text("ABORT", style: GoogleFonts.shareTechMono(color: Colors.white24)),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: candidatesList.isEmpty
+                            ? null
+                            : () {
+                                final inputString = candidatesList.join(';');
+                                ctrl.verifyCandidates(inputString);
+                                SmartDialog.dismiss();
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.cyanAccent.withValues(alpha: 0.1),
+                          foregroundColor: Colors.cyanAccent,
+                          side: BorderSide(color: candidatesList.isEmpty ? Colors.white12 : Colors.cyanAccent),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        ),
+                        child: const Text("VERIFY ALL"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 class _SystemAnalysisButton extends StatelessWidget {
@@ -862,31 +1018,36 @@ class _SystemAnalysisButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.greenAccent.withValues(alpha: 0.1),
-          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.5)),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.layers_outlined, size: 16, color: Colors.greenAccent),
-            const SizedBox(width: 12),
-            Text(
-              "COMMENCE SYSTEMS ANALYSIS PASS",
-              style: GoogleFonts.shareTechMono(
-                color: Colors.greenAccent,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: Colors.greenAccent.withValues(alpha: 0.15),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.greenAccent.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.layers_outlined, size: 16, color: Colors.greenAccent),
+              const SizedBox(width: 12),
+              Text(
+                "COMMENCE SYSTEMS ANALYSIS PASS",
+                style: GoogleFonts.shareTechMono(
+                  color: Colors.greenAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -901,31 +1062,36 @@ class _SymbolicActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.blueAccent.withValues(alpha: 0.1),
-          border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.5)),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: Colors.blueAccent),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.shareTechMono(
-                color: Colors.blueAccent,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: Colors.blueAccent.withValues(alpha: 0.15),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.blueAccent.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: Colors.blueAccent),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: GoogleFonts.shareTechMono(
+                  color: Colors.blueAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -938,31 +1104,36 @@ class _CentralizationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.amberAccent.withValues(alpha: 0.1),
-          border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.5)),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.center_focus_strong, size: 16, color: Colors.amberAccent),
-            const SizedBox(width: 12),
-            Text(
-              "TRIGGER VARIABLE CENTRALIZATION",
-              style: GoogleFonts.shareTechMono(
-                color: Colors.amberAccent,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: Colors.amberAccent.withValues(alpha: 0.15),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.amberAccent.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.center_focus_strong, size: 16, color: Colors.amberAccent),
+              const SizedBox(width: 12),
+              Text(
+                "TRIGGER VARIABLE CENTRALIZATION",
+                style: GoogleFonts.shareTechMono(
+                  color: Colors.amberAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1182,25 +1353,36 @@ class _UnsanctionedSolveButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.redAccent.withValues(alpha: 0.1),
-          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.5)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.warning, size: 16, color: Colors.redAccent),
-            const SizedBox(width: 12),
-            Text(
-              "ACCESS UNSANCTIONED AUTO-SOLVE",
-              style: GoogleFonts.shareTechMono(color: Colors.redAccent, fontSize: 12),
-            ),
-          ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: Colors.redAccent.withValues(alpha: 0.2),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withValues(alpha: 0.08),
+            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.4)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.warning, size: 16, color: Colors.redAccent),
+              const SizedBox(width: 12),
+              Text(
+                "ACCESS UNSANCTIONED AUTO-SOLVE",
+                style: GoogleFonts.shareTechMono(
+                  color: Colors.redAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1241,6 +1423,48 @@ class _AlgebraEntryKeypad extends StatelessWidget {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+class _VerifyCandidatesButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  const _VerifyCandidatesButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        hoverColor: Colors.cyanAccent.withValues(alpha: 0.15),
+        child: Ink(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.cyanAccent.withValues(alpha: 0.05),
+            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.check_circle_outline, size: 16, color: Colors.cyanAccent),
+              const SizedBox(width: 12),
+              Text(
+                "VERIFY SOLUTION CANDIDATES",
+                style: GoogleFonts.shareTechMono(
+                  color: Colors.cyanAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -35,6 +35,15 @@ class SlopeState with SlopeStateMappable {
   final bool isMinimalMode;
   final bool isPerfectlyLinear;
 
+  // Line 2 Intersection fields
+  final double? secondSlope;
+  final double? secondYIntercept;
+  final String? secondEquation;
+  final SlopePoint? intersectionPoint;
+  final String? intersectionStatus;
+  final List<SlopePoint> segmentIntersections;
+  final SlopePoint? checkPoint;
+
   const SlopeState({
     this.points = const [],
     this.slope,
@@ -58,5 +67,12 @@ class SlopeState with SlopeStateMappable {
     this.inputEquation,
     this.isMinimalMode = false,
     this.isPerfectlyLinear = true,
+    this.secondSlope,
+    this.secondYIntercept,
+    this.secondEquation,
+    this.intersectionPoint,
+    this.intersectionStatus,
+    this.segmentIntersections = const [],
+    this.checkPoint,
   });
 }

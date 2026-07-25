@@ -284,6 +284,51 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
     opt: true,
     def: true,
   );
+  static double? _$secondSlope(SlopeState v) => v.secondSlope;
+  static const Field<SlopeState, double> _f$secondSlope = Field(
+    'secondSlope',
+    _$secondSlope,
+    opt: true,
+  );
+  static double? _$secondYIntercept(SlopeState v) => v.secondYIntercept;
+  static const Field<SlopeState, double> _f$secondYIntercept = Field(
+    'secondYIntercept',
+    _$secondYIntercept,
+    opt: true,
+  );
+  static String? _$secondEquation(SlopeState v) => v.secondEquation;
+  static const Field<SlopeState, String> _f$secondEquation = Field(
+    'secondEquation',
+    _$secondEquation,
+    opt: true,
+  );
+  static SlopePoint? _$intersectionPoint(SlopeState v) => v.intersectionPoint;
+  static const Field<SlopeState, SlopePoint> _f$intersectionPoint = Field(
+    'intersectionPoint',
+    _$intersectionPoint,
+    opt: true,
+  );
+  static String? _$intersectionStatus(SlopeState v) => v.intersectionStatus;
+  static const Field<SlopeState, String> _f$intersectionStatus = Field(
+    'intersectionStatus',
+    _$intersectionStatus,
+    opt: true,
+  );
+  static List<SlopePoint> _$segmentIntersections(SlopeState v) =>
+      v.segmentIntersections;
+  static const Field<SlopeState, List<SlopePoint>> _f$segmentIntersections =
+      Field(
+        'segmentIntersections',
+        _$segmentIntersections,
+        opt: true,
+        def: const [],
+      );
+  static SlopePoint? _$checkPoint(SlopeState v) => v.checkPoint;
+  static const Field<SlopeState, SlopePoint> _f$checkPoint = Field(
+    'checkPoint',
+    _$checkPoint,
+    opt: true,
+  );
 
   @override
   final MappableFields<SlopeState> fields = const {
@@ -309,6 +354,13 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
     #inputEquation: _f$inputEquation,
     #isMinimalMode: _f$isMinimalMode,
     #isPerfectlyLinear: _f$isPerfectlyLinear,
+    #secondSlope: _f$secondSlope,
+    #secondYIntercept: _f$secondYIntercept,
+    #secondEquation: _f$secondEquation,
+    #intersectionPoint: _f$intersectionPoint,
+    #intersectionStatus: _f$intersectionStatus,
+    #segmentIntersections: _f$segmentIntersections,
+    #checkPoint: _f$checkPoint,
   };
 
   static SlopeState _instantiate(DecodingData data) {
@@ -335,6 +387,13 @@ class SlopeStateMapper extends ClassMapperBase<SlopeState> {
       inputEquation: data.dec(_f$inputEquation),
       isMinimalMode: data.dec(_f$isMinimalMode),
       isPerfectlyLinear: data.dec(_f$isPerfectlyLinear),
+      secondSlope: data.dec(_f$secondSlope),
+      secondYIntercept: data.dec(_f$secondYIntercept),
+      secondEquation: data.dec(_f$secondEquation),
+      intersectionPoint: data.dec(_f$intersectionPoint),
+      intersectionStatus: data.dec(_f$intersectionStatus),
+      segmentIntersections: data.dec(_f$segmentIntersections),
+      checkPoint: data.dec(_f$checkPoint),
     );
   }
 
@@ -410,6 +469,10 @@ abstract class SlopeStateCopyWith<$R, $In extends SlopeState, $Out>
   get segmentSlopesFractions;
   ListCopyWith<$R, double?, ObjectCopyWith<$R, double?, double?>?>
   get pointRatios;
+  SlopePointCopyWith<$R, SlopePoint, SlopePoint>? get intersectionPoint;
+  ListCopyWith<$R, SlopePoint, SlopePointCopyWith<$R, SlopePoint, SlopePoint>>
+  get segmentIntersections;
+  SlopePointCopyWith<$R, SlopePoint, SlopePoint>? get checkPoint;
   $R call({
     List<SlopePoint>? points,
     double? slope,
@@ -433,6 +496,13 @@ abstract class SlopeStateCopyWith<$R, $In extends SlopeState, $Out>
     String? inputEquation,
     bool? isMinimalMode,
     bool? isPerfectlyLinear,
+    double? secondSlope,
+    double? secondYIntercept,
+    String? secondEquation,
+    SlopePoint? intersectionPoint,
+    String? intersectionStatus,
+    List<SlopePoint>? segmentIntersections,
+    SlopePoint? checkPoint,
   });
   SlopeStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -495,6 +565,21 @@ class _SlopeStateCopyWithImpl<$R, $Out>
     (v) => call(pointRatios: v),
   );
   @override
+  SlopePointCopyWith<$R, SlopePoint, SlopePoint>? get intersectionPoint =>
+      $value.intersectionPoint?.copyWith.$chain(
+        (v) => call(intersectionPoint: v),
+      );
+  @override
+  ListCopyWith<$R, SlopePoint, SlopePointCopyWith<$R, SlopePoint, SlopePoint>>
+  get segmentIntersections => ListCopyWith(
+    $value.segmentIntersections,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(segmentIntersections: v),
+  );
+  @override
+  SlopePointCopyWith<$R, SlopePoint, SlopePoint>? get checkPoint =>
+      $value.checkPoint?.copyWith.$chain((v) => call(checkPoint: v));
+  @override
   $R call({
     List<SlopePoint>? points,
     Object? slope = $none,
@@ -518,6 +603,13 @@ class _SlopeStateCopyWithImpl<$R, $Out>
     Object? inputEquation = $none,
     bool? isMinimalMode,
     bool? isPerfectlyLinear,
+    Object? secondSlope = $none,
+    Object? secondYIntercept = $none,
+    Object? secondEquation = $none,
+    Object? intersectionPoint = $none,
+    Object? intersectionStatus = $none,
+    List<SlopePoint>? segmentIntersections,
+    Object? checkPoint = $none,
   }) => $apply(
     FieldCopyWithData({
       if (points != null) #points: points,
@@ -545,6 +637,14 @@ class _SlopeStateCopyWithImpl<$R, $Out>
       if (inputEquation != $none) #inputEquation: inputEquation,
       if (isMinimalMode != null) #isMinimalMode: isMinimalMode,
       if (isPerfectlyLinear != null) #isPerfectlyLinear: isPerfectlyLinear,
+      if (secondSlope != $none) #secondSlope: secondSlope,
+      if (secondYIntercept != $none) #secondYIntercept: secondYIntercept,
+      if (secondEquation != $none) #secondEquation: secondEquation,
+      if (intersectionPoint != $none) #intersectionPoint: intersectionPoint,
+      if (intersectionStatus != $none) #intersectionStatus: intersectionStatus,
+      if (segmentIntersections != null)
+        #segmentIntersections: segmentIntersections,
+      if (checkPoint != $none) #checkPoint: checkPoint,
     }),
   );
   @override
@@ -583,6 +683,22 @@ class _SlopeStateCopyWithImpl<$R, $Out>
       #isPerfectlyLinear,
       or: $value.isPerfectlyLinear,
     ),
+    secondSlope: data.get(#secondSlope, or: $value.secondSlope),
+    secondYIntercept: data.get(#secondYIntercept, or: $value.secondYIntercept),
+    secondEquation: data.get(#secondEquation, or: $value.secondEquation),
+    intersectionPoint: data.get(
+      #intersectionPoint,
+      or: $value.intersectionPoint,
+    ),
+    intersectionStatus: data.get(
+      #intersectionStatus,
+      or: $value.intersectionStatus,
+    ),
+    segmentIntersections: data.get(
+      #segmentIntersections,
+      or: $value.segmentIntersections,
+    ),
+    checkPoint: data.get(#checkPoint, or: $value.checkPoint),
   );
 
   @override

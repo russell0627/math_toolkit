@@ -375,8 +375,8 @@ class AlgebraCtrl extends _$AlgebraCtrl {
   void _updateResolvedVariables() {
     final Map<String, String> resolved = {};
     for (final eq in state.equations) {
-      final leftVars = _getVariables(eq.left);
-      final rightVars = _getVariables(eq.right);
+      final leftVars = _getVariables(_normalize(eq.left));
+      final rightVars = _getVariables(_normalize(eq.right));
 
       if (leftVars.length == 1 && rightVars.isEmpty) {
         final varName = leftVars.first;
@@ -393,12 +393,61 @@ class AlgebraCtrl extends _$AlgebraCtrl {
     state = state.copyWith(resolvedVariables: resolved);
   }
 
+  ({String left, String right}) _substituteResolved(String left, String right) {
+    final normLeft = _normalize(left);
+    final normRight = _normalize(right);
+    final eqVars = {..._getVariables(normLeft), ..._getVariables(normRight)};
+    final resolved = state.resolvedVariables;
+    final unsolvedVars = eqVars.difference(resolved.keys.toSet());
+
+    String targetVar;
+    if (unsolvedVars.length == 1) {
+      targetVar = unsolvedVars.first;
+    } else if (unsolvedVars.isEmpty && eqVars.isNotEmpty) {
+      final leftVars = _getVariables(normLeft);
+      targetVar = leftVars.isNotEmpty ? leftVars.first : eqVars.first;
+    } else {
+      String nextLeft = left;
+      String nextRight = right;
+      for (final v in eqVars) {
+        if (resolved.containsKey(v)) {
+          nextLeft = nextLeft.replaceAllMapped(
+            RegExp(r'\b' + RegExp.escape(v) + r'\b'),
+            (match) => '(${resolved[v]})',
+          );
+          nextRight = nextRight.replaceAllMapped(
+            RegExp(r'\b' + RegExp.escape(v) + r'\b'),
+            (match) => '(${resolved[v]})',
+          );
+        }
+      }
+      return (left: nextLeft, right: nextRight);
+    }
+
+    String nextLeft = left;
+    String nextRight = right;
+    for (final v in eqVars) {
+      if (v != targetVar && resolved.containsKey(v)) {
+        nextLeft = nextLeft.replaceAllMapped(
+          RegExp(r'\b' + RegExp.escape(v) + r'\b'),
+          (match) => '(${resolved[v]})',
+        );
+        nextRight = nextRight.replaceAllMapped(
+          RegExp(r'\b' + RegExp.escape(v) + r'\b'),
+          (match) => '(${resolved[v]})',
+        );
+      }
+    }
+    return (left: nextLeft, right: nextRight);
+  }
+
   void solve() {
     final current = state.equations[state.selectedIndex];
     if (current.left.isEmpty || current.right.isEmpty) return;
 
     try {
-      final combinedRaw = "(${current.left}) - (${current.right})";
+      final subbed = _substituteResolved(current.left, current.right);
+      final combinedRaw = "(${subbed.left}) - (${subbed.right})";
       final normCombined = _normalize(combinedRaw);
       final exp = _parser.parse(normCombined);
       final variables = _getVariables(normCombined);
@@ -583,6 +632,155 @@ class AlgebraCtrl extends _$AlgebraCtrl {
         error: "AUTO-SOLVE ERROR",
         showAuditStamp: true,
       );
+    }
+  }
+
+  void verifyCandidates(String input) {
+    final current = state.equations[state.selectedIndex];
+    if (current.left.isEmpty || current.right.isEmpty) return;
+
+    try {
+      final subbed = _substituteResolved(current.left, current.right);
+      final combinedRaw = "(${subbed.left}) - (${subbed.right})";
+      final normCombined = _normalize(combinedRaw);
+      final exp = _parser.parse(normCombined);
+      final variables = _getVariables(normCombined);
+
+      if (variables.isEmpty) {
+        state = state.copyWith(error: "NO VARIABLES TO VERIFY");
+        return;
+      }
+
+      final List<Map<String, double>> candidateSets = [];
+      final setsRaw = input.split(';');
+
+      for (final setRaw in setsRaw) {
+        final trimmedSet = setRaw.trim();
+        if (trimmedSet.isEmpty) continue;
+
+        if (trimmedSet.contains('=') || trimmedSet.contains(':')) {
+          final Map<String, double> binding = {};
+          final assignments = trimmedSet.split(',');
+          for (final assignment in assignments) {
+            final parts = assignment.contains('=') ? assignment.split('=') : assignment.split(':');
+            if (parts.length != 2) continue;
+            final varName = parts[0].trim();
+            final val = double.tryParse(parts[1].trim());
+            if (val != null) {
+              binding[varName] = val;
+            }
+          }
+          if (binding.isNotEmpty) {
+            candidateSets.add(binding);
+          }
+        } else {
+          final cleaned = trimmedSet
+              .replaceAll(RegExp(r'^\('), '')
+              .replaceAll(RegExp(r'\)$'), '')
+              .trim();
+
+          final values = cleaned
+              .split(',')
+              .map((s) => double.tryParse(s.trim()))
+              .where((d) => d != null)
+              .cast<double>()
+              .toList();
+
+          if (values.isNotEmpty) {
+            final sortedVars = variables.toList()..sort();
+            if (sortedVars.length > 1 && values.length == sortedVars.length) {
+              final Map<String, double> binding = {};
+              for (int i = 0; i < sortedVars.length; i++) {
+                binding[sortedVars[i]] = values[i];
+              }
+              candidateSets.add(binding);
+            } else {
+              final varName = sortedVars.first;
+              for (final val in values) {
+                candidateSets.add({varName: val});
+              }
+            }
+          }
+        }
+      }
+
+      if (candidateSets.isEmpty) {
+        state = state.copyWith(error: "NO VALID CANDIDATE MAPPINGS PROVIDED");
+        return;
+      }
+
+      final List<Map<String, double>> validSets = [];
+
+      for (final binding in candidateSets) {
+        final cm = ContextModel();
+
+        binding.forEach((varName, value) {
+          cm.bindVariable(Variable(varName), Number(value));
+        });
+
+        final resolved = state.resolvedVariables;
+        for (final v in variables) {
+          if (!binding.containsKey(v) && resolved.containsKey(v)) {
+            final val = double.tryParse(resolved[v]!);
+            if (val != null) {
+              cm.bindVariable(Variable(v), Number(val));
+            }
+          }
+        }
+
+        bool allBound = true;
+        for (final v in variables) {
+          if (!binding.containsKey(v) && !resolved.containsKey(v)) {
+            allBound = false;
+            break;
+          }
+        }
+
+        if (!allBound) {
+          continue;
+        }
+
+        final double difference = exp.evaluate(EvaluationType.REAL, cm);
+        final rel = current.relation;
+        bool satisfies = false;
+        if (rel == "=") {
+          satisfies = difference.abs() < 1e-10;
+        } else if (rel == "<") {
+          satisfies = difference < -1e-10;
+        } else if (rel == ">") {
+          satisfies = difference > 1e-10;
+        } else if (rel == "<=") {
+          satisfies = difference <= 1e-10;
+        } else if (rel == ">=") {
+          satisfies = difference >= -1e-10;
+        }
+
+        if (satisfies) {
+          validSets.add(binding);
+        }
+      }
+
+      if (validSets.isEmpty) {
+        state = state.copyWith(error: "NO CANDIDATES SATISFY THE RELATIONSHIP");
+        return;
+      }
+
+      if (variables.length == 1) {
+        final varName = variables.first;
+        final formattedSolutions = validSets.map((b) => _formatDouble(b[varName]!)).join(", ");
+        _applySolution(varName, formattedSolutions, relation: current.relation);
+        state = state.copyWith(error: null, lastOp: "VERIFIED SOLUTION CANDIDATES: $formattedSolutions");
+      } else {
+        final varNames = variables.toList()..sort();
+        final formattedSolutions = validSets.map((b) {
+          return "(" + varNames.map((v) => b.containsKey(v) ? _formatDouble(b[v]!) : "?").join(", ") + ")";
+        }).join(" OR ");
+
+        _applySolution(varNames.join(", "), formattedSolutions, relation: current.relation);
+        state = state.copyWith(error: null, lastOp: "VERIFIED SYSTEM CANDIDATES: $formattedSolutions");
+      }
+    } catch (e) {
+      state = state.copyWith(error: "VERIFICATION PROTOCOL FAILED");
     }
   }
 
@@ -854,8 +1052,9 @@ class AlgebraCtrl extends _$AlgebraCtrl {
 
   void _updateSuggestions() {
     final currentEq = state.equations[state.selectedIndex];
-    final leftNorm = _normalize(currentEq.left);
-    final rightNorm = _normalize(currentEq.right);
+    final subbed = _substituteResolved(currentEq.left, currentEq.right);
+    final leftNorm = _normalize(subbed.left);
+    final rightNorm = _normalize(subbed.right);
     final leftVars = _getVariables(leftNorm);
     final rightVars = _getVariables(rightNorm);
 
@@ -998,20 +1197,41 @@ class AlgebraCtrl extends _$AlgebraCtrl {
   void refreshAndResolve() {
     final updatedEquations = state.equations
         .map(
-          (eq) => EquationPair(
-            left: _resolveExpression(eq.left),
-            right: _resolveExpression(eq.right),
-            relation: eq.relation,
-          ),
+          (eq) {
+            final leftVars = _getVariables(_normalize(eq.left));
+            final rightVars = _getVariables(_normalize(eq.right));
+            String? excludeVar;
+            if (leftVars.length == 1 && rightVars.isEmpty && eq.left == leftVars.first && eq.relation == "=") {
+              excludeVar = leftVars.first;
+            } else if (rightVars.length == 1 && leftVars.isEmpty && eq.right == rightVars.first && eq.relation == "=") {
+              excludeVar = rightVars.first;
+            }
+
+            return EquationPair(
+              left: _resolveExpression(eq.left, excludeVar: excludeVar),
+              right: _resolveExpression(eq.right, excludeVar: excludeVar),
+              relation: eq.relation,
+            );
+          },
         )
         .toList();
     state = state.copyWith(equations: updatedEquations);
     _updateResolvedVariables();
   }
 
-  String _resolveExpression(String raw) {
+  String _resolveExpression(String raw, {String? excludeVar}) {
     try {
-      final normalized = _normalize(raw);
+      String subbed = raw;
+      final resolved = state.resolvedVariables;
+      for (final v in _getVariables(_normalize(raw))) {
+        if (v != excludeVar && resolved.containsKey(v)) {
+          subbed = subbed.replaceAllMapped(
+            RegExp(r'\b' + RegExp.escape(v) + r'\b'),
+            (match) => '(${resolved[v]})',
+          );
+        }
+      }
+      final normalized = _normalize(subbed);
       if (normalized.isEmpty) return "";
 
       final exp = _parser.parse(normalized);

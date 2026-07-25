@@ -14,6 +14,8 @@ import '../../settings/controller/settings_ctrl.dart';
 import '../../slope_calculator/presentation/slope_view.dart';
 import '../../transformation_sequence/presentation/transformation_sequence_view.dart';
 import '../../triangle_solver/presentation/triangle_view.dart';
+import '../../acceleration_calculator/presentation/acceleration_view.dart';
+import '../../efficiency_calculator/presentation/efficiency_view.dart';
 import '../controller/workbench_ctrl.dart';
 import '../model/workbench_model.dart';
 import 'widgets/mini_calculator_view.dart';
@@ -266,6 +268,10 @@ class WorkbenchScreen extends ConsumerWidget {
         return const TransformationSequenceView(isCompact: false);
       case MainModule.slopeAudit:
         return const SlopeCalculatorView();
+      case MainModule.acceleration:
+        return const AccelerationView();
+      case MainModule.efficiency:
+        return const EfficiencyView();
     }
   }
 
@@ -321,6 +327,10 @@ class WorkbenchScreen extends ConsumerWidget {
         return Colors.blueAccent;
       case MainModule.slopeAudit:
         return Colors.orangeAccent;
+      case MainModule.acceleration:
+        return Colors.amberAccent;
+      case MainModule.efficiency:
+        return Colors.tealAccent;
     }
   }
 

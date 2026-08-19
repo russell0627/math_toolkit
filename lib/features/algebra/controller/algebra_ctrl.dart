@@ -457,7 +457,7 @@ class AlgebraCtrl extends _$AlgebraCtrl {
         return;
       }
       if (variables.length > 1) {
-        state = state.copyWith(error: "CAN ONLY AUTO-SOLVE SINGLE VARIABLE");
+        isolateVariable(variables.first);
         return;
       }
 
@@ -632,6 +632,98 @@ class AlgebraCtrl extends _$AlgebraCtrl {
         error: "AUTO-SOLVE ERROR",
         showAuditStamp: true,
       );
+    }
+  }
+
+  void isolateVariable([String? targetVar]) {
+    final current = state.equations[state.selectedIndex];
+    if (current.left.isEmpty || current.right.isEmpty) return;
+
+    try {
+      final subbed = _substituteResolved(current.left, current.right);
+      final leftNorm = _normalize(subbed.left);
+      final rightNorm = _normalize(subbed.right);
+      final allVars = {..._getVariables(leftNorm), ..._getVariables(rightNorm)};
+
+      if (allVars.isEmpty) {
+        state = state.copyWith(error: "NO VARIABLES TO ISOLATE");
+        return;
+      }
+
+      final varToIsolate = (targetVar != null && allVars.contains(targetVar))
+          ? targetVar
+          : allVars.first;
+
+      final left = _iterativeSimplify(subbed.left);
+      final right = _iterativeSimplify(subbed.right);
+
+      final leftTerms = _getSeparatedTerms(left);
+      final rightTerms = _getSeparatedTerms(right);
+
+      final List<String> newLeft = [];
+      final List<String> newRight = [];
+
+      for (final term in leftTerms) {
+        if (_getVariables(term).contains(varToIsolate)) {
+          newLeft.add(term);
+        } else {
+          newRight.add(_invertTerm(term));
+        }
+      }
+
+      for (final term in rightTerms) {
+        if (_getVariables(term).contains(varToIsolate)) {
+          newLeft.add(_invertTerm(term));
+        } else {
+          newRight.add(term);
+        }
+      }
+
+      final rawLeft = newLeft.isEmpty ? "0" : newLeft.join(" + ");
+      final rawRight = newRight.isEmpty ? "0" : newRight.join(" + ");
+
+      final cm = ContextModel();
+      final targetV = Variable(varToIsolate);
+      final leftVars = _getVariables(_normalize(rawLeft));
+      for (final v in leftVars) {
+        if (v != varToIsolate) cm.bindVariable(Variable(v), Number(0));
+      }
+
+      final parsedLeft = _parser.parse(_normalize(rawLeft.isEmpty ? "0" : rawLeft));
+      cm.bindVariable(targetV, Number(0));
+      final double f0 = parsedLeft.evaluate(EvaluationType.REAL, cm);
+      cm.bindVariable(targetV, Number(1));
+      final double f1 = parsedLeft.evaluate(EvaluationType.REAL, cm);
+      final double coeff = f1 - f0;
+
+      String finalRight;
+      if (coeff.abs() > 1e-10 && (coeff - 1).abs() > 1e-10) {
+        if ((coeff + 1).abs() < 1e-10) {
+          finalRight = "-($rawRight)";
+        } else {
+          finalRight = "($rawRight) / ${_formatDouble(coeff)}";
+        }
+      } else {
+        finalRight = rawRight;
+      }
+
+      final resolvedRight = _resolveExpression(finalRight, excludeVar: varToIsolate);
+      final newEq = EquationPair(left: varToIsolate, right: resolvedRight, relation: current.relation);
+
+      final newEquations = List<EquationPair>.from(state.equations);
+      newEquations[state.selectedIndex] = newEq;
+
+      final nextState = state.copyWith(
+        equations: newEquations,
+        lastOp: "[Eq ${state.selectedIndex + 1}] ISOLATED $varToIsolate",
+        history: [...state.history],
+      );
+
+      state = nextState.copyWith(history: [...state.history, nextState], error: null, showAuditStamp: true);
+      _updateResolvedVariables();
+      _updateSuggestions();
+    } catch (e) {
+      state = state.copyWith(error: "VARIABLE ISOLATION FAILED");
     }
   }
 
@@ -960,14 +1052,28 @@ class AlgebraCtrl extends _$AlgebraCtrl {
   List<String> _getSeparatedTerms(String input) {
     if (input.isEmpty) return [];
 
-    // Protocol: Split by top-level addition/subtraction, preserving operators.
-    // We iterate through keeping track of parenthesis depth to avoid splitting inside radicals or groups.
+    String normalized = input.replaceAll(' ', '');
+    while (normalized.startsWith('(') && normalized.endsWith(')')) {
+      int depth = 0;
+      bool matchesOuter = true;
+      for (int i = 0; i < normalized.length - 1; i++) {
+        if (normalized[i] == '(') depth++;
+        if (normalized[i] == ')') depth--;
+        if (depth == 0) {
+          matchesOuter = false;
+          break;
+        }
+      }
+      if (matchesOuter) {
+        normalized = normalized.substring(1, normalized.length - 1);
+      } else {
+        break;
+      }
+    }
+
     final terms = <String>[];
     String currentTerm = "";
     int depth = 0;
-
-    // Normalize: replace '-' with '+-' for easier splitting, but only at top level.
-    String normalized = input.replaceAll(' ', '');
 
     for (int i = 0; i < normalized.length; i++) {
       final char = normalized[i];
@@ -1088,6 +1194,17 @@ class AlgebraCtrl extends _$AlgebraCtrl {
           justification: "RESOLVE PROPORTIONAL RELATIONSHIP",
         ),
       );
+    }
+    if (allVars.length > 1) {
+      for (final v in allVars) {
+        suggestions.add(
+          OperationSuggestion(
+            op: "ISOLATE",
+            value: v,
+            justification: "ISOLATE VARIABLE $v",
+          ),
+        );
+      }
     }
 
     if (allVars.length == 1) {

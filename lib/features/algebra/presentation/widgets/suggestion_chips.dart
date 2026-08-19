@@ -54,6 +54,8 @@ class SuggestionChips extends ConsumerWidget {
                     ctrl.setPreview(null, null);
                     if (suggestion.op == 'FACTOR') {
                       ctrl.factor();
+                    } else if (suggestion.op == 'ISOLATE') {
+                      ctrl.isolateVariable(suggestion.value);
                     } else {
                       ctrl.applyOperation(suggestion.op, suggestion.value);
                     }
